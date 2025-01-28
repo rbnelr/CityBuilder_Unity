@@ -14,7 +14,7 @@ public class TestMapBuilder : MonoBehaviour {
 	public float spacing = 60;
 	
 	[Range(0, 2000)]
-	public int vehicles = 2;
+	public int num_vehicles = 2;
 
 	public float intersection_radius = 0.0f;
 
@@ -28,7 +28,7 @@ public class TestMapBuilder : MonoBehaviour {
 	}
 
 	void Update () {
-		
+		adjust_vehicle_count();
 	}
 	
 	Road road_type (int2 pos, int axis, out bool flip) {
@@ -142,20 +142,14 @@ public class TestMapBuilder : MonoBehaviour {
 			float3 building_size = float3(16, 16, 7); // TODO
 
 			{
-				var asset = rand.Pick(entities.building_assets);
-
-				float3 pos = base_pos + road_center + float3(0, 0, roadR + building_size.z);
-				//build1->update_cached(asset == house0 ? 2 : 0);
-				
-				Instantiate(asset, pos, Quaternion.Euler(0,180,0) * asset.transform.localRotation, entities.buildings_go.transform);
+				var building = Building.create(entities, rand.Pick(entities.building_assets));
+				building.transform.position = base_pos + road_center + float3(0, 0, roadR + building_size.z);
+				building.transform.rotation = Quaternion.Euler(0,180,0);
 			}
 			{
-				var asset = rand.Pick(entities.building_assets);
-
-				float3 pos = base_pos + road_center - float3(0, 0, -roadL + building_size.z);
-				//build1->update_cached(asset == house0 ? 2 : 0);
-				
-				Instantiate(asset, pos, Quaternion.Euler(0,0,0) * asset.transform.localRotation, entities.buildings_go.transform);
+				var building = Building.create(entities, rand.Pick(entities.building_assets));
+				building.transform.position = base_pos + road_center - float3(0, 0, -roadL + building_size.z);
+				building.transform.rotation = Quaternion.Euler(0,0,0);
 			}
 		}
 
@@ -163,7 +157,30 @@ public class TestMapBuilder : MonoBehaviour {
 	}
 	
 	[Button("Respawn Vehicles")]
-	private void respawn_vehicles () {
+	void respawn_vehicles () {
+		entities.destroy_vehicles();
 		
+		adjust_vehicle_count();
+	}
+	void adjust_vehicle_count () {
+		while (entities.vehicles_go.transform.childCount < num_vehicles) {
+			spawn_vehicle();
+		}
+		if (entities.vehicles_go.transform.childCount > num_vehicles) {
+			int to_destroy = entities.vehicles_go.transform.childCount - num_vehicles;
+			for (int i=0; i<to_destroy; ++i) {
+				var c = entities.vehicles_go.transform.GetChild(entities.vehicles_go.transform.childCount-1-i);
+				Destroy(c.gameObject);
+			}
+		}
+	}
+
+
+	void spawn_vehicle () {
+		var asset = rand.Pick(entities.vehicle_assets);
+
+		var vehicle = Vehicle.create(entities, asset);
+
+		vehicle.cur_building = rand.Pick(entities.buildings_go.GetComponentsInChildren<Building>());
 	}
 }

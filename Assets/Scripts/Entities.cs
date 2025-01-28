@@ -6,6 +6,8 @@ using static Unity.Mathematics.math;
 using Random = Unity.Mathematics.Random;
 
 public class Entities : MonoBehaviour {
+	public static Entities inst;
+
 	public GameObject roads_go;
 	public GameObject junctions_go;
 	public GameObject buildings_go;
@@ -17,8 +19,12 @@ public class Entities : MonoBehaviour {
 	public Road medium_road_asset;
 	public Road small_road_asset;
 	
-	public GameObject[] building_assets;
-	public GameObject[] vehicle_assets;
+	public Building[] building_assets;
+	public Vehicle[] vehicle_assets;
+
+	void Awake () {
+		inst = this;
+	}
 
 	void destroy_children (GameObject go) {
 		if (Application.isEditor) {
