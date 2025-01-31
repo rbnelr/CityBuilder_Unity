@@ -145,11 +145,13 @@ public class TestMapBuilder : MonoBehaviour {
 				var building = Building.create(entities, rand.Pick(entities.building_assets));
 				building.transform.position = base_pos + road_center + float3(0, 0, roadR + building_size.z);
 				building.transform.rotation = Quaternion.Euler(0,180,0);
+				building.connected_road = conn_seg;
 			}
 			{
 				var building = Building.create(entities, rand.Pick(entities.building_assets));
 				building.transform.position = base_pos + road_center - float3(0, 0, -roadL + building_size.z);
 				building.transform.rotation = Quaternion.Euler(0,0,0);
+				building.connected_road = conn_seg;
 			}
 		}
 

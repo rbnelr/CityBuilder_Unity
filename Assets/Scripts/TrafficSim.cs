@@ -7,6 +7,7 @@ using Random = Unity.Mathematics.Random;
 
 public class TrafficSim : MonoBehaviour {
 	public Entities entities;
+	public Pathfinding pathfinding;
 
 	
 }

@@ -4,6 +4,7 @@ using UnityEngine;
 using Unity.Mathematics;
 using static Unity.Mathematics.math;
 using Random = Unity.Mathematics.Random;
+using UnityEditor.Experimental.GraphView;
 
 public class Junction : MonoBehaviour {
 	public float3 position {
@@ -14,6 +15,13 @@ public class Junction : MonoBehaviour {
 	public Road[] roads { get; private set; } = new Road[0];
 
 	public float _radius;
+
+	// temp pathfinding vars
+	public float _cost;
+	public bool _visited;
+	//public int _q_idx;
+	public Junction _pred;
+	public Road _pred_road;
 	
 	public static Junction create (Entities e) {
 		var junction = Instantiate(e.junction_prefab, e.junctions_go.transform);
@@ -26,5 +34,15 @@ public class Junction : MonoBehaviour {
 		var list = roads.ToList();
 		list.Add(road);
 		roads = list.ToArray();
+	}
+
+	public static Junction between (Road src, Road dst) {
+		if (src.junc_a == dst.junc_a || src.junc_a == dst.junc_b) {
+			return src.junc_a;
+		}
+		else {
+			Debug.Assert(src.junc_b == dst.junc_a || src.junc_b == dst.junc_b);
+			return src.junc_b;
+		}
 	}
 }

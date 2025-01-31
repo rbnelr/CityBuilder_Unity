@@ -6,7 +6,6 @@ using static Unity.Mathematics.math;
 using Random = Unity.Mathematics.Random;
 
 public class Entities : MonoBehaviour {
-	public static Entities inst;
 
 	public GameObject roads_go;
 	public GameObject junctions_go;
@@ -22,6 +21,10 @@ public class Entities : MonoBehaviour {
 	public Building[] building_assets;
 	public Vehicle[] vehicle_assets;
 
+	public IEnumerable<Road> roads => transform.GetComponentsInChildren<Road>();
+	public IEnumerable<Junction> junctions => transform.GetComponentsInChildren<Junction>();
+	
+	public static Entities inst;
 	void Awake () {
 		inst = this;
 	}

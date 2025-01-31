@@ -7,6 +7,8 @@ using Random = Unity.Mathematics.Random;
 
 public class Building : MonoBehaviour {
 
+	public Road connected_road;
+
 	public static Building create (Entities e, Building prefab) {
 		var building = Instantiate(prefab, e.buildings_go.transform);
 		return building;
