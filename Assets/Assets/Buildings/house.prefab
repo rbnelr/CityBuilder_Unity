@@ -49,7 +49,7 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: -3032598060766594668, guid: b288d7cb2b3e20a4b996dc36330b2df6, type: 3}
-      propertyPath: m_Materials.Array.data[0]
+      propertyPath: 'm_Materials.Array.data[0]'
       value: 
       objectReference: {fileID: 2100000, guid: c52690f6965fc7d44b0fa88e5e9c711f, type: 2}
     - target: {fileID: 528719233577195678, guid: b288d7cb2b3e20a4b996dc36330b2df6, type: 3}
@@ -134,22 +134,22 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4742473837712756890, guid: b288d7cb2b3e20a4b996dc36330b2df6, type: 3}
       propertyPath: m_LODs.Array.data[0].screenRelativeHeight
-      value: 0.1
+      value: 0.15
       objectReference: {fileID: 0}
     - target: {fileID: 4742473837712756890, guid: b288d7cb2b3e20a4b996dc36330b2df6, type: 3}
       propertyPath: m_LODs.Array.data[1].screenRelativeHeight
-      value: 0.02
+      value: 0.04
       objectReference: {fileID: 0}
     - target: {fileID: 4742473837712756890, guid: b288d7cb2b3e20a4b996dc36330b2df6, type: 3}
       propertyPath: m_LODs.Array.data[2].screenRelativeHeight
       value: 0.003
       objectReference: {fileID: 0}
     - target: {fileID: 4966272614665268500, guid: b288d7cb2b3e20a4b996dc36330b2df6, type: 3}
-      propertyPath: m_Materials.Array.data[0]
+      propertyPath: 'm_Materials.Array.data[0]'
       value: 
       objectReference: {fileID: 2100000, guid: c52690f6965fc7d44b0fa88e5e9c711f, type: 2}
     - target: {fileID: 7229153664309303443, guid: b288d7cb2b3e20a4b996dc36330b2df6, type: 3}
-      propertyPath: m_Materials.Array.data[0]
+      propertyPath: 'm_Materials.Array.data[0]'
       value: 
       objectReference: {fileID: 2100000, guid: c52690f6965fc7d44b0fa88e5e9c711f, type: 2}
     - target: {fileID: 8262829770090380848, guid: b288d7cb2b3e20a4b996dc36330b2df6, type: 3}
@@ -209,3 +209,4 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 559153f0948a10649b7debd5800666d9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  connected_road: {fileID: 0}
