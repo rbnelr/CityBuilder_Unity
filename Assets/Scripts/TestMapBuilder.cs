@@ -7,13 +7,13 @@ using Random = Unity.Mathematics.Random;
 
 public class TestMapBuilder : MonoBehaviour {
 
-	public Entities entities;
+	Entities entities => Entities.inst;
 
 	[Range(1, 500)]
 	public int grid = 10;
 	public float spacing = 60;
 	
-	[Range(0, 2000)]
+	[Range(0, 10000)]
 	public int num_vehicles = 2;
 
 	public float intersection_radius = 0.0f;
@@ -55,7 +55,7 @@ public class TestMapBuilder : MonoBehaviour {
 		Debug.Assert(node_a && node_b && node_a != node_b);
 		if (flip) (node_a, node_b) = (node_b, node_a);
 
-		var road = Road.create(entities, prefab, node_a, node_b);
+		var road = Road.create(prefab, node_a, node_b);
 		
 		node_a._radius = max(node_a._radius, prefab.width/2);
 		node_b._radius = max(node_b._radius, prefab.width/2);
@@ -78,7 +78,7 @@ public class TestMapBuilder : MonoBehaviour {
 		// create path nodes grid
 		for (int y=0; y<grid+1; ++y)
 		for (int x=0; x<grid+1; ++x) {
-			var junc = Junction.create(entities);
+			var junc = Junction.create();
 			junc.position = base_pos + float3(x, 0, y) * float3(spacing, 0, spacing);
 			junc._radius = 0;
 		
@@ -142,13 +142,13 @@ public class TestMapBuilder : MonoBehaviour {
 			float3 building_size = float3(16, 16, 7); // TODO
 
 			{
-				var building = Building.create(entities, rand.Pick(entities.building_assets));
+				var building = Building.create(rand.Pick(entities.building_assets));
 				building.transform.position = base_pos + road_center + float3(0, 0, roadR + building_size.z);
 				building.transform.rotation = Quaternion.Euler(0,180,0);
 				building.connected_road = conn_seg;
 			}
 			{
-				var building = Building.create(entities, rand.Pick(entities.building_assets));
+				var building = Building.create(rand.Pick(entities.building_assets));
 				building.transform.position = base_pos + road_center - float3(0, 0, -roadL + building_size.z);
 				building.transform.rotation = Quaternion.Euler(0,0,0);
 				building.connected_road = conn_seg;
@@ -181,7 +181,7 @@ public class TestMapBuilder : MonoBehaviour {
 	void spawn_vehicle () {
 		var asset = rand.Pick(entities.vehicle_assets);
 
-		var vehicle = Vehicle.create(entities, asset);
+		var vehicle = Vehicle.create(asset);
 
 		vehicle.cur_building = rand.Pick(entities.buildings_go.GetComponentsInChildren<Building>());
 	}

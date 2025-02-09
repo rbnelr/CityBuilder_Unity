@@ -4,7 +4,7 @@ using UnityEngine;
 using Unity.Mathematics;
 using static Unity.Mathematics.math;
 using Random = Unity.Mathematics.Random;
-using UnityEditor.Experimental.GraphView;
+using static Road;
 
 public class Road : MonoBehaviour {
 	public Junction junc_a { get; private set; }
@@ -20,9 +20,40 @@ public class Road : MonoBehaviour {
 
 	public float edgeL => -width / 2; // TODO
 	public float edgeR => width / 2; // TODO
+	
+	[System.Serializable]
+	public struct Lane {
+		public float shift;
+		public RoadDirection dir;
+	}
 
-	public static Road create (Entities e, Road prefab, Junction a, Junction b) {
-		var road = Instantiate(prefab, e.roads_go.transform);
+	public Lane[] lanes;
+
+	private void OnDrawGizmosSelected () {
+		foreach (var lane in lanes) {
+			get_lane_path(lane).debugdraw();
+		}
+	}
+
+	public struct LanePath {
+		public Lane _lane;
+		public float3 a, b;
+		public float3 eval (float t) => lerp(a, b, t);
+		public void debugdraw () {
+			Gizmos.color = _lane.dir == RoadDirection.Forward ? Color.yellow : Color.blue;
+			Extensions.GizmosDrawArrow(a + float3(0,0.05f,0), b-a, 1);
+		}
+	}
+	public LanePath get_lane_path (Lane lane) {
+		float3 a = transform.TransformPoint(lane.shift*10/width,0,-5);
+		float3 b = transform.TransformPoint(lane.shift*10/width,0,+5);
+		return lane.dir == RoadDirection.Forward ?
+			new LanePath { _lane=lane, a=a, b=b } :
+			new LanePath { _lane=lane, a=b, b=a };
+	}
+
+	public static Road create (Road prefab, Junction a, Junction b) {
+		var road = Instantiate(prefab, Entities.inst.roads_go.transform);
 		road.junc_a = a;
 		road.junc_b = b;
 
@@ -49,3 +80,5 @@ public class Road : MonoBehaviour {
 	
 	public Junction other_junction (Junction junc) => junc_a != junc ? junc_a : junc_b;
 }
+
+public enum RoadDirection : byte { Forward, Backward }

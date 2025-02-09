@@ -4,7 +4,6 @@ using UnityEngine;
 using Unity.Mathematics;
 using static Unity.Mathematics.math;
 using Random = Unity.Mathematics.Random;
-using UnityEditor.Experimental.GraphView;
 
 public class Junction : MonoBehaviour {
 	public float3 position {
@@ -23,8 +22,8 @@ public class Junction : MonoBehaviour {
 	public Junction _pred;
 	public Road _pred_road;
 	
-	public static Junction create (Entities e) {
-		var junction = Instantiate(e.junction_prefab, e.junctions_go.transform);
+	public static Junction create () {
+		var junction = Instantiate(Entities.inst.junction_prefab, Entities.inst.junctions_go.transform);
 		return junction;
 	}
 

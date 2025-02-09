@@ -6,6 +6,10 @@ using static Unity.Mathematics.math;
 using Random = Unity.Mathematics.Random;
 
 public class Entities : MonoBehaviour {
+	public static Entities inst;
+	void Awake () {
+		inst = this;
+	}
 
 	public GameObject roads_go;
 	public GameObject junctions_go;
@@ -24,11 +28,6 @@ public class Entities : MonoBehaviour {
 	public IEnumerable<Road> roads => transform.GetComponentsInChildren<Road>();
 	public IEnumerable<Junction> junctions => transform.GetComponentsInChildren<Junction>();
 	
-	public static Entities inst;
-	void Awake () {
-		inst = this;
-	}
-
 	void destroy_children (GameObject go) {
 		if (Application.isEditor) {
 			for (int i=go.transform.childCount-1; i>=0; i--) {

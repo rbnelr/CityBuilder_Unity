@@ -4,19 +4,15 @@ using UnityEngine;
 using Unity.Mathematics;
 using static Unity.Mathematics.math;
 using Random = Unity.Mathematics.Random;
-using System.Collections;
-using System.IO;
-using Unity.VisualScripting;
-using UnityEditor.Experimental.GraphView;
 using UnityEditor;
 
 public class Pathfinding : MonoBehaviour {
-	public Entities entities;
-	
 	public static Pathfinding inst;
 	void Awake () {
 		inst = this;
 	}
+
+	Entities entities => Entities.inst;
 
 	// Pathfinding ignores lanes other than checking if any lane allows the turn to a node being visited
 	// Note: lane selection happens later during car path follwing, a few segments into the future
@@ -194,7 +190,7 @@ public class Pathfinding : MonoBehaviour {
 				Gizmos.color = col;
 				Gizmos.DrawWireSphere(node.position, node._radius);
 
-				Handles.Label(node.position, node._cost.ToString("0."));
+				//Handles.Label(node.position, node._cost.ToString("0."));
 				if (node._pred_road) {
 					float3 pos = (node._pred_road.pos_a + node._pred_road.pos_b) * 0.5f;
 					

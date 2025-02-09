@@ -4,12 +4,6 @@ using UnityEngine;
 using Unity.Mathematics;
 using static Unity.Mathematics.math;
 using Random = Unity.Mathematics.Random;
-using static UnityEditor.Progress;
-using System.Runtime.ConstrainedExecution;
-using System.IO;
-using static UnityEngine.GraphicsBuffer;
-using UnityEditor.PackageManager.UI;
-using UnityEditor;
 using NaughtyAttributes;
 
 public class Vehicle : MonoBehaviour {
@@ -25,8 +19,8 @@ public class Vehicle : MonoBehaviour {
 
 	public Building target = null;
 
-	public static Vehicle create (Entities e, Vehicle prefab) {
-		var vehicle = Instantiate(prefab, e.vehicles_go.transform);
+	public static Vehicle create (Vehicle prefab) {
+		var vehicle = Instantiate(prefab, Entities.inst.vehicles_go.transform);
 		return vehicle;
 	}
 
@@ -40,7 +34,7 @@ public class Vehicle : MonoBehaviour {
 
 	struct Motion {
 		public Road cur_road;
-		public bool dir;
+		public Road.LanePath path;
 		public float cur_dist;
 	};
 	
@@ -58,23 +52,27 @@ public class Vehicle : MonoBehaviour {
 			int i = _path_idx;
 			Road cur_road = path[i];
 
-			bool dir;
+			RoadDirection dir;
 			if (i == 0) {
 				var next_junc = Junction.between(cur_road, path[i+1]);
-				dir = next_junc != cur_road.junc_a;
+				dir = next_junc != cur_road.junc_a ? RoadDirection.Forward : RoadDirection.Backward;
 			}
 			else {
 				var prev_junc = Junction.between(path[i-1], cur_road);
-				dir = prev_junc == cur_road.junc_a;
+				dir = prev_junc == cur_road.junc_a ? RoadDirection.Forward : RoadDirection.Backward;
 			}
 
-			yield return new Motion { cur_road = cur_road, dir = dir, cur_dist = 0 };
+			int lane = rand.Pick(cur_road.lanes.Select((x,i) => new { lane=x, idx=i }).Where(x => x.lane.dir == dir).Select(x => x.idx).ToArray());
+
+			yield return new Motion { cur_road = cur_road, path = cur_road.get_lane_path(cur_road.lanes[lane]), cur_dist = 0 };
 		}
 	}
 
 	// TODO: Could track progress in kilometer and or time and ETA in minutes
 	[ShowNativeProperty]
 	public string TripProgress { get {
+		if (cur_building == null && target_building == null) return "";
+		
 		if (cur_building != null) {
 			return $"parked at {cur_building}";
 		}
@@ -110,6 +108,7 @@ public class Vehicle : MonoBehaviour {
 
 	void Update () {
 		if (GameTime.inst.paused) return;
+		if (cur_building == null && target_building == null) return; // handle vehicle spawned while no buildings exist gracefully
 
 		if (cur_building) {
 			transform.position = parking_spot(cur_building);
@@ -124,12 +123,8 @@ public class Vehicle : MonoBehaviour {
 		}
 		
 		if (!cur_building) {
-			float3 a = motion.cur_road.pos_a;
-			float3 b = motion.cur_road.pos_b;
-			if (!motion.dir) (a,b) = (b,a);
-
-			float3 pos = a;
-			float3 dir = normalizesafe(b - a);
+			float3 pos = motion.path.a;
+			float3 dir = normalizesafe(motion.path.b - motion.path.a);
 			
 			transform.position = pos + dir * motion.cur_dist;
 			transform.rotation = Quaternion.LookRotation(dir);
