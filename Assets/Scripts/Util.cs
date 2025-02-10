@@ -28,3 +28,26 @@ public static class Extensions {
 		Gizmos.DrawRay(pos + direction, left * arrowHeadLength);
 	}
 }
+
+//public struct Bezier<T> {
+//	T a, b, c, d;
+//
+//	public struct PosVel {
+//		public T pos;
+//		public T vel; // velocity (delta position / delta bezier t)
+//	}
+//	PosVel eval<T> (float t) where T: INumber<T> { // ughhhhhh
+//		T c0 = a;                   // a
+//		T c1 = 3 * (b - a);         // (-3a +3b)t
+//		T c2 = 3 * (a + c) - 6*b;   // (3a -6b +3c)t^2
+//		T c3 = 3 * (b - c) - a + d; // (-a +3b -3c +d)t^3
+//
+//		float t2 = t*t;
+//		float t3 = t2*t;
+//		
+//		T value = c3*t3     + c2*t2    + c1*t + c0; // f(t)
+//		T deriv = c3*(t2*3) + c2*(t*2) + c1;        // f'(t)
+//		
+//		return new PosVel { pos=value, vel=deriv };
+//	}
+//}

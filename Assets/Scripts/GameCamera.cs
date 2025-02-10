@@ -3,6 +3,8 @@ using Unity.Mathematics;
 using static Unity.Mathematics.math;
 using UnityEngine.InputSystem;
 using NaughtyAttributes;
+using UnityEditor;
+using System.Reflection;
 
 [RequireComponent(typeof(Camera))]
 public class GameCamera : MonoBehaviour {
@@ -21,18 +23,14 @@ public class GameCamera : MonoBehaviour {
 	[Range(-180, 180)]
 	public float roll = 0;
 
-	// TODO: zoom
+	public SmoothedVar zoom = new SmoothedVar { value = 10, smoothing_time = 0.1f };
 	
-	// TODO: Is this a good way to solve this?? Problem: Handling smoothed fov while also providing useful inspector and not exposing 'fake' fov to users
-	[HideInInspector]
-	public float fov = 70; // real fov
-	public float default_vfov = 70;
+	public SmoothedVar fov = new SmoothedVar { value = 70, smoothing_time = 0.1f };
+	float default_vfov = 70;
 	
-	[InspectorName("fov")]
-	[Range(1.0f/10, 179.0f)]
-	public float fov_animate_target;
-	public float fov_animate_time = 0.02f;
-	float fov_animate_speed = 0;
+	private void Awake () {
+		default_vfov = fov.value;
+	}
 
 #region controls
 	[Header("Controls")]
@@ -40,11 +38,6 @@ public class GameCamera : MonoBehaviour {
 	public float look_gamepad_sensitivity = 1;
 
 	public float roll_speed = 45;
-	
-	private void Start () {
-		fov_animate_target = default_vfov;
-		fov = fov_animate_target;
-	}
 
 	static float2 get_WASD () { // unnormalized
 		float2 dir = 0;
@@ -72,7 +65,7 @@ public class GameCamera : MonoBehaviour {
 		// scaling by FOV might not be wanted in all situations (180 flick in a shooter would need new muscle memory with other fov)
 		// but usually muscle memory for flicks are supposedly based on offsets on screen, which do scale with FOV, so FOV scaled sens seems to be better
 		// look_sensitivity is basically  screen heights per 100 mouse dots, where dots are moved mouse distance in inch * mouse dpi
-		look *= 0.001f * look_mouse_sensitivity * fov;
+		look *= 0.001f * look_mouse_sensitivity * fov.value;
 		
 		if (look_button) {
 			return look;
@@ -119,16 +112,16 @@ public class GameCamera : MonoBehaviour {
 				//base_speed = clamp(pow(2.0f, log), 0.001f, max_speed);
 			}
 			else { // F+scroll changes fov
-				float log = log2(fov_animate_target);
+				float log = log2(fov.target_value);
 				log -= 0.1f * scroll_delta;
-				fov_animate_target = clamp(pow(2.0f, log), 1.0f/10, 170.0f);
+				fov.target_value = clamp(pow(2.0f, log), 1.0f/10, 170.0f);
 				
 				if (Keyboard.current.leftShiftKey.isPressed && scroll_delta != 0) // shift+F+scroll resets fov
-					fov_animate_target = default_vfov;
+					fov.value = default_vfov;
 			}
 
-			fov = Mathf.SmoothDamp(fov,	fov_animate_target, ref fov_animate_speed, fov_animate_time);
-			GetComponent<Camera>().fieldOfView = fov;
+			fov.Update(Time.unscaledDeltaTime);
+			GetComponent<Camera>().fieldOfView = fov.value;
 		}
 
 		{ //// Camera rotation
