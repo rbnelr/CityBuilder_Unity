@@ -5,10 +5,11 @@ using UnityEngine.InputSystem;
 using NaughtyAttributes;
 
 [RequireComponent(typeof(Camera))]
-public class Flycam : MonoBehaviour {
-	
-	//public float3 position => GetComponent<Camera>().transform.position;
-	//public Quaternion rotation => GetComponent<Camera>().transform.rotation;
+public class GameCamera : MonoBehaviour {
+
+	public float3 orbit_pos = 0;
+	[ShowNativeProperty]
+	public Vector3 cam_pos => GetComponent<Camera>().transform.position;
 
 	// CCW  0=north (+Z)  90=east(+X)  (compass)
 	[Range(-180, 180)]
@@ -20,16 +21,8 @@ public class Flycam : MonoBehaviour {
 	[Range(-180, 180)]
 	public float roll = 0;
 
-	public float base_speed = 10;
-
-	float max_speed = 1000000.0f;
-	float speedup_factor = 2;
-
-	float cur_speed = 0;
-	[ShowNativeProperty] public string CurrentSpeed => $"{cur_speed}";
+	// TODO: zoom
 	
-	public bool planar_move = false;
-
 	// TODO: Is this a good way to solve this?? Problem: Handling smoothed fov while also providing useful inspector and not exposing 'fake' fov to users
 	[HideInInspector]
 	public float fov = 70; // real fov
@@ -41,8 +34,6 @@ public class Flycam : MonoBehaviour {
 	public float fov_animate_time = 0.02f;
 	float fov_animate_speed = 0;
 
-	void set_fov_animate (float target) => fov_animate_target = target;
-
 #region controls
 	[Header("Controls")]
 	public float look_mouse_sensitivity = 1;
@@ -50,9 +41,6 @@ public class Flycam : MonoBehaviour {
 
 	public float roll_speed = 45;
 	
-	// lock and make cursor invisible
-	public bool lock_cursor = false;
-
 	private void Start () {
 		fov_animate_target = default_vfov;
 		fov = fov_animate_target;
@@ -73,7 +61,7 @@ public class Flycam : MonoBehaviour {
 		return val;
 	}
 	
-	bool manual_look => Mouse.current.middleButton.isPressed;
+	bool look_button => Mouse.current.middleButton.isPressed;
 	bool change_fov => Keyboard.current.fKey.isPressed;
 	float scroll_delta => Mouse.current.scroll.ReadValue().y;
 
@@ -86,7 +74,7 @@ public class Flycam : MonoBehaviour {
 		// look_sensitivity is basically  screen heights per 100 mouse dots, where dots are moved mouse distance in inch * mouse dpi
 		look *= 0.001f * look_mouse_sensitivity * fov;
 		
-		if (lock_cursor || manual_look) {
+		if (look_button) {
 			return look;
 		}
 		return 0;
@@ -107,12 +95,6 @@ public class Flycam : MonoBehaviour {
 			look = get_right_stick() * look_gamepad_sensitivity * 100 * Time.deltaTime;
 		return look;
 	}
-	float2 get_move2d () {
-		float2 move2d = normalizesafe(get_WASD());
-		if (move2d.x == 0 && move2d.y == 0)
-			move2d = get_left_stick();
-		return move2d;
-	}
 	float3 get_move3d () {
 		float3 move3d = float3(get_WASD(), get_QE());
 		move3d = normalizesafe(move3d);
@@ -122,55 +104,19 @@ public class Flycam : MonoBehaviour {
 
 		return float3(move3d.x, move3d.z, move3d.y); // swap to unity Y-up
 	}
-
-	void update_lock_cursor () {
-		bool toggle_lock = Keyboard.current.f2Key.wasPressedThisFrame;
-
-		if (toggle_lock) {
-			lock_cursor = !lock_cursor;
-		}
-		if (lock_cursor && !Application.isFocused)
-			lock_cursor = false; // enforce unlock when alt-tab
-
-		if (lock_cursor) {
-			Cursor.visible = false;
-			Cursor.lockState = CursorLockMode.Locked;
-		}
-		else {
-			Cursor.visible = true;
-			if (manual_look) {
-				Cursor.lockState = CursorLockMode.Confined;
-			}
-			else {
-				Cursor.lockState = CursorLockMode.None;
-			}
-		}
-	}
-
-	private void OnDisable () {
-		if (lock_cursor) {
-			lock_cursor = false;
-			update_lock_cursor();
-		}
-	}
 #endregion
 
 	void LateUpdate () {
-		update_lock_cursor();
-
-		//float2 move2d = get_move2d();
-		//float roll_dir = get_QE();
-
 		float3 move3d = get_move3d();
-		float roll_dir = 0;
+		float roll_dir = 0; // could bind to keys, but roll control via UI slider is good enough
 
 		float2 look_delta = get_look_delta();
 
-		{ //// speed or fov change with mousewheel
-			if (!change_fov) { // scroll changes base speed
-				float log = log2(base_speed);
-				log += 0.1f * scroll_delta;
-				base_speed = clamp(pow(2.0f, log), 0.001f, max_speed);
+		{ //// zoom or fov change with mousewheel
+			if (!change_fov) { // scroll changes zoom
+				//float log = log2(base_speed);
+				//log += 0.1f * scroll_delta;
+				//base_speed = clamp(pow(2.0f, log), 0.001f, max_speed);
 			}
 			else { // F+scroll changes fov
 				float log = log2(fov_animate_target);
@@ -198,24 +144,21 @@ public class Flycam : MonoBehaviour {
 			transform.rotation = Quaternion.Euler(-elevation, azimuth, -roll);
 		}
 		
-		{ //// movement
-			if (lengthsq(move3d) == 0.0f)
-				cur_speed = base_speed; // no movement resets speed
-
-			if (Keyboard.current.leftShiftKey.isPressed) {
-				cur_speed += base_speed * speedup_factor * Time.unscaledDeltaTime;
-			}
-
-			cur_speed = clamp(cur_speed, base_speed, max_speed);
-
-			float3 move_delta = cur_speed * move3d * Time.unscaledDeltaTime;
-
-			if (planar_move) {
-				transform.position += Quaternion.AngleAxis(azimuth, Vector3.up) * move_delta;
-			}
-			else {
-				transform.position += transform.TransformDirection(move_delta);
-			}
-		}
+		//{ //// movement
+		//	if (lengthsq(move3d) == 0.0f)
+		//		cur_speed = base_speed; // no movement resets speed
+		//
+		//	if (Keyboard.current.leftShiftKey.isPressed) {
+		//		cur_speed += base_speed * speedup_factor * Time.unscaledDeltaTime;
+		//	}
+		//
+		//	cur_speed = clamp(cur_speed, base_speed, max_speed);
+		//
+		//	float3 move_delta = cur_speed * move3d * Time.unscaledDeltaTime;
+		//
+		//	orbit_pos += Quaternion.AngleAxis(azimuth, Vector3.up) * move_delta;
+		//
+		//	transform.position = orbit_pos;
+		//}
 	}
 }

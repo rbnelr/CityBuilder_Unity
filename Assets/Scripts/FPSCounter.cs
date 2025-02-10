@@ -22,15 +22,7 @@ public class Fps : MonoBehaviour {
 			// if unscaledDeltaTime was really high for some reason, just reset timer
 			if (timer > update_period) timer = 0;
 		}
-	}
 
-	void OnGUI () {
-		Rect location = new Rect(5, 5, 85, 25);
-		string text = $"FPS: {Mathf.Round(display_fps)}";
-		Texture black = Texture2D.linearGrayTexture;
-		GUI.DrawTexture(location, black, ScaleMode.StretchToFill);
-		GUI.color = Color.black;
-		GUI.skin.label.fontSize = 18;
-		GUI.Label(location, text);
+		DebugHUD.Show($"FPS: {Mathf.Round(display_fps)}");
 	}
 }

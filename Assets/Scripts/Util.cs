@@ -28,19 +28,3 @@ public static class Extensions {
 		Gizmos.DrawRay(pos + direction, left * arrowHeadLength);
 	}
 }
-
-public class MyMath {
-	public static float smooth_var (float dt, float cur, float target, float smooth_fac, float smooth_const=1) {
-		if (smooth_fac <= 0.0f)
-			return target;
-
-		// smoothed zoom via animating towards zoom_target
-		float delta = target - cur;
-		float dir = sign(delta);
-		delta = abs(delta);
-		float vel = delta * smooth_fac + 1.0f; // proportional velocity + small constant to actually reach target
-
-		cur += dir * min(delta, vel * dt); // min(delta, vel) to never overshoot target
-		return cur;
-	}
-}
