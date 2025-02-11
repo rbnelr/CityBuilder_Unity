@@ -3,10 +3,10 @@ using Unity.Mathematics;
 using static Unity.Mathematics.math;
 using UnityEngine.InputSystem;
 using NaughtyAttributes;
-using UnityEditor;
-using System.Reflection;
 using System;
-using static UnityEngine.InputManagerEntry;
+using static UnityEngine.Rendering.DebugUI.Table;
+using Unity.VisualScripting;
+using UnityEngine.Rendering.Universal;
 
 // TODO: freeze cursor when pressing look key (hide it? or keep it visible but freeze it?)
 
@@ -122,11 +122,9 @@ public class GameCamera : MonoBehaviour {
 	float2 get_mouse_look_delta () {
 		float2 look = Mouse.current.delta.ReadValue();
 		
-		// Apply sensitivity and scale by FOV
-		// scaling by FOV might not be wanted in all situations (180 flick in a shooter would need new muscle memory with other fov)
-		// but usually muscle memory for flicks are supposedly based on offsets on screen, which do scale with FOV, so FOV scaled sens seems to be better
-		// look_sensitivity is basically  screen heights per 100 mouse dots, where dots are moved mouse distance in inch * mouse dpi
-		look *= 0.001f * look_mouse_sensitivity * fov;
+		// Apply sensitivity and do _not_ scale by FOV
+		// scaling by FOV like in Flycam feels wrong for orbit cameras
+		look *= 0.1f * look_mouse_sensitivity; // arbitrary 0.1 degrees / mouse dot
 		
 		if (look_button) {
 			return look;
@@ -158,81 +156,147 @@ public class GameCamera : MonoBehaviour {
 
 		return float3(move3d.x, move3d.z, move3d.y); // swap to unity Y-up
 	}
-#endregion
 
-	void LateUpdate () {
-		float3 move3d = get_move3d();
+	// TODO: is it reasonably possible to keep cursor in place (and visible) while rotating?
+	//  Mouse.current.WarpCursorPosition() can move cursor every frame, but might be dodgy
+	void update_lock_cursor () {
+
+		if (look_button) {
+			//Cursor.visible = false;
+			//Cursor.lockState = CursorLockMode.Locked; // Ends up resetting the cursor to the center, which sucks
+			Cursor.lockState = CursorLockMode.Confined;
+		}
+		else {
+			//Cursor.visible = true;
+			Cursor.lockState = CursorLockMode.None;
+			
+		}
+	}
+	#endregion
+
+	void camera_zoom_or_fov () {
+		if (!change_fov) { // scroll changes zoom
+			float delta = get_PlusMinus() * 16 * Time.unscaledDeltaTime;
+			delta += scroll_delta;
+
+			float log = log2(zoom_target);
+			log -= zoom_sens * delta;
+			zoom_target = clamp(pow(2.0f, log), zoom_min, zoom_max);
+		}
+		else { // F+scroll changes fov
+			float log = log2(fov_target);
+			log -= fov_sens * scroll_delta;
+			fov_target = clamp(pow(2.0f, log), fov_min, fov_max);
+
+			if (Keyboard.current.leftShiftKey.isPressed && scroll_delta != 0) // shift+F+scroll resets fov
+				fov = default_fov;
+		}
+
+		// smooth zoom to fov_target (in log space)
+		_zoom = pow(2.0f, Mathf.SmoothDamp(log2(_zoom), log2(zoom_target), ref zoom_velocity, zoom_smoothing, float.PositiveInfinity, Time.unscaledDeltaTime));
+		// smooth fov to fov_target
+		GetComponent<Camera>().fieldOfView = Mathf.SmoothDamp(fov, fov_target, ref fov_velocity, fov_smoothing, float.PositiveInfinity, Time.unscaledDeltaTime);
+	}
+	
+	void camera_rotation () {
 		float roll_dir = 0; // could bind to keys, but roll control via UI slider is good enough
-
 		float2 look_delta = get_look_delta();
 
-		{ //// zoom or fov change with mousewheel
-			if (!change_fov) { // scroll changes zoom
-				float delta = get_PlusMinus() * 16 * Time.unscaledDeltaTime;
-				delta += scroll_delta;
-				
-				float log = log2(zoom_target);
-				log -= zoom_sens * delta;
-				zoom_target = clamp(pow(2.0f, log), zoom_min, zoom_max);
+		azimuth += look_delta.x;
+		azimuth = (azimuth + 180.0f) % 360.0f - 180.0f;
+
+		elevation += look_delta.y;
+		elevation = clamp(elevation, -90.0f, +90.0f);
+
+		roll += roll_dir * roll_speed * Time.unscaledDeltaTime;
+		roll = (roll + 180.0f) % 360.0f - 180.0f;
+
+		transform.rotation = Quaternion.Euler(-elevation, azimuth, -roll);
+	}
+
+	bool dragging = false;
+	float3 dragging_grab_point = 0;
+
+	void move_camera_with_cursor () {
+		if (Mouse.current.leftButton.isPressed) {
+			var cursor_pos = Mouse.current.position.ReadValue();
+			var camera = GetComponent<Camera>();
+			var ray = camera.ScreenPointToRay(float3(cursor_pos, 0));
+
+			if (Mouse.current.leftButton.wasPressedThisFrame) {
+				if (Physics.Raycast(ray, out RaycastHit hit)) {
+					//// begin dragging
+					Debug.Log($"Hit on transform: {hit.transform.name} {hit.point} {hit.distance}");
+					// remember worldspace cursor hit
+					dragging = true;
+					dragging_grab_point = hit.point;
+				}
+				else {
+					// No valid raycast hit, simply don't start dragging
+				}
 			}
-			else { // F+scroll changes fov
-				float log = log2(fov_target);
-				log -= fov_sens * scroll_delta;
-				fov_target = clamp(pow(2.0f, log), fov_min, fov_max);
-				
-				if (Keyboard.current.leftShiftKey.isPressed && scroll_delta != 0) // shift+F+scroll resets fov
-					fov = default_fov;
+
+			if (dragging) {
+				//// while dragging
+				// compute needed orbit_pos such that dragging_grab_point is still under moved cursor
+				// problem: distince can be variable, but keeping distance constant feels bad because it moves camera vertially
+				// instead do a little math to keep the camera height and zoom parameter constant and only adjust orbit_pos.xz
+
+				// current camera position (NOTE: depends on camera_position_from_orbit_pos() having run to avoid off by one frame wobble)
+				float3 camera_pos = transform.position;
+
+				// dist to grab point needed to keep camera height constant
+				float dist = (dragging_grab_point.y - camera_pos.y) / ray.direction.y;
+				// new camera position
+				camera_pos.xz = dragging_grab_point.xz - ((float3)ray.direction).xz * dist;
+				// compute new orbit_pos to get camera_pos, reverse of camera_position_from_orbit_pos()
+				orbit_pos.xz = camera_pos.xz + ((float3)transform.forward).xz * zoom;
+
+
+				// Bad version where grab distance stays constant
+				//float3 camera_pos = dragging_grab_point - (float3)ray.direction * dragging_grab_dist;
+				//orbit_pos.xz = camera_pos.xz + ((float3)transform.forward).xz * zoom;
 			}
-
-			// smooth zoom to fov_target (in log space)
-			_zoom = pow(2.0f, Mathf.SmoothDamp(log2(_zoom), log2(zoom_target), ref zoom_velocity, zoom_smoothing, float.PositiveInfinity, Time.unscaledDeltaTime));
-			// smooth fov to fov_target
-			GetComponent<Camera>().fieldOfView = Mathf.SmoothDamp(fov, fov_target, ref fov_velocity, fov_smoothing, float.PositiveInfinity, Time.unscaledDeltaTime);
 		}
-
-		{ //// Camera rotation
-			azimuth += look_delta.x;
-			azimuth = (azimuth + 180.0f) % 360.0f - 180.0f;
-
-			elevation += look_delta.y;
-			elevation = clamp(elevation, -90.0f, +90.0f);
-
-			roll += roll_dir * roll_speed * Time.unscaledDeltaTime;
-			roll = (roll + 180.0f) % 360.0f - 180.0f;
-
-			transform.rotation = Quaternion.Euler(-elevation, azimuth, -roll);
+		else {
+			dragging = false;
 		}
-		{ //// movement
-			
-			// TODO: Speedup via shift, possibly in a nicer way than usual
-			// TODO: moving via click and drag (on ground plane, or via raycast?)
+	}
 
-			//float3 move_dir = binds.get_local_move_dir(I);
-			//float move_speed = length(move_dir); // could be analog with gamepad
-			//
-			//if (move_speed == 0.0f)
-			//	cur_speed = base_speed; // no movement resets speed
-			//
-			//if (I.buttons[binds.modifier].is_down) {
-			//	move_speed *= fast_multiplier;
-			//
-			//	cur_speed += base_speed * speedup_factor * I.real_dt;
-			//}
-			//
-			//cur_speed = clamp(cur_speed, base_speed, max_speed);
-			float cur_speed = base_speed;
+	void camera_position_from_orbit_pos () {
+		float3 collided_pos = orbit_pos - (float3)transform.forward * zoom;
 
-			float3 move_delta = cur_speed * zoom * move3d * Time.unscaledDeltaTime;
+		collided_pos.y = max(collided_pos.y, 0.01f);
 
-			orbit_pos += (float3)(Quaternion.AngleAxis(azimuth, Vector3.up) * move_delta);
+		transform.position = collided_pos;
+	}
+
+	void camera_movement () {
+		float cur_speed = base_speed;
+		if (Keyboard.current.shiftKey.isPressed)
+			cur_speed *= 2.0f;
+
+		float fov_scale = fov / 55.0f; // slow down when zooming in
+		float3 move_delta = cur_speed * zoom * fov_scale * get_move3d() * Time.unscaledDeltaTime;
+
+		orbit_pos += (float3)(Quaternion.AngleAxis(azimuth, Vector3.up) * move_delta);
 		
-			float3 collided_pos;
-			{
-				collided_pos = orbit_pos - (float3)transform.forward * zoom;
-				collided_pos.y = max(collided_pos.y, 0.01f);
-			}
+		// needed for move_camera_with_cursor() to work correctly (otherwise it wobbled vertically when zooming)
+		camera_position_from_orbit_pos();
 
-			transform.position = collided_pos;
-		}
+		move_camera_with_cursor();
+		
+		// compute final camera position
+		camera_position_from_orbit_pos();
+	}
+
+	void LateUpdate () {
+		update_lock_cursor();
+
+		camera_zoom_or_fov();
+
+		camera_rotation();
+
+		camera_movement();
 	}
 }

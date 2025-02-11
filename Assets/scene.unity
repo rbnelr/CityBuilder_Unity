@@ -612,6 +612,7 @@ MonoBehaviour:
     x: 0
     y: 0
     z: 0
+  base_speed: 1
   azimuth: 40
   elevation: -35
   roll: 0
@@ -620,7 +621,7 @@ MonoBehaviour:
   zoom_max: 10000
   zoom_sens: 0.25
   zoom_smoothing: 0.05
-  fov_target: 70
+  fov_target: 55
   fov_min: 0.1
   fov_max: 179
   fov_sens: 0.1
@@ -713,7 +714,7 @@ Camera:
     height: 1
   near clip plane: 0.3
   far clip plane: 10000
-  field of view: 70
+  field of view: 55
   orthographic: 0
   orthographic size: 5
   m_Depth: -1
