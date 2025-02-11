@@ -10,7 +10,7 @@ public class Building : MonoBehaviour {
 	public Road connected_road;
 
 	public static Building create (Building prefab) {
-		var building = Instantiate(prefab, Entities.inst.buildings_go.transform);
+		var building = Instantiate(prefab, g.entities.buildings_go.transform);
 		return building;
 	}
 }

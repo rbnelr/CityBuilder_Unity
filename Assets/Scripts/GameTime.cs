@@ -7,11 +7,6 @@ using Random = Unity.Mathematics.Random;
 using UnityEngine.InputSystem;
 
 public class GameTime : MonoBehaviour {
-	public static GameTime inst;
-	void Awake () {
-		inst = this;
-	}
-
 	public bool paused = false;
 	[Range(0, 10)]
 	public float speed = 1;

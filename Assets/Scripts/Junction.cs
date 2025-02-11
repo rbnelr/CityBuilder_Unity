@@ -23,7 +23,7 @@ public class Junction : MonoBehaviour {
 	public Road _pred_road;
 	
 	public static Junction create () {
-		var junction = Instantiate(Entities.inst.junction_prefab, Entities.inst.junctions_go.transform);
+		var junction = Instantiate(g.entities.junction_prefab, g.entities.junctions_go.transform);
 		return junction;
 	}
 

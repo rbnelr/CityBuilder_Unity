@@ -20,7 +20,7 @@ public class Vehicle : MonoBehaviour {
 	public Building target = null;
 
 	public static Vehicle create (Vehicle prefab) {
-		var vehicle = Instantiate(prefab, Entities.inst.vehicles_go.transform);
+		var vehicle = Instantiate(prefab, g.entities.vehicles_go.transform);
 		return vehicle;
 	}
 
@@ -31,6 +31,14 @@ public class Vehicle : MonoBehaviour {
 	// -can't ask about total length of path afterwards unless I also manually store it
 	// so at the end I only really benefit by avoiding manually having a 'progress' counter, and having slightly more readable code
 	// it's also easier to use more memory than you need to, since any local var in the function might be stored permanently
+
+	// TODO: make the current travel state be serializable
+	// -> Serialize all of the path, target_building, motion etc.
+	//     or simply make sure pathfinding is deterministic and just store current motion, then allow 'repathing', which I want to support anyway
+	//     repathing to the same spot should then produce identical movement as if repathing did not happen, this way storing the path can be avoided entirely
+	//     if pathing takes into account current traffic, it would _not_ be identical anymore and loading a savegame might introduce visible repathing
+	//     not sure what the alternative is, if vehicles repath regularily anyway (because storing hundreds of future path nodes is expensive at runtime too)
+	//     lets say vehicles follow 20 nodes, then always repath with new traffic data (and constantly update the next few lanes)
 
 	struct Motion {
 		public Road cur_road;
@@ -80,11 +88,11 @@ public class Vehicle : MonoBehaviour {
 	}}
 
 	bool start_trip () {
-		var targ = rand.Pick(Entities.inst.buildings_go.GetComponentsInChildren<Building>());
+		var targ = rand.Pick(g.entities.buildings_go.GetComponentsInChildren<Building>());
 		if (targ == cur_building)
 			return false; // not supported
 
-		path = Pathfinding.inst.pathfind(cur_building.connected_road, targ.connected_road);
+		path = g.pathfinding.pathfind(cur_building.connected_road, targ.connected_road);
 		if (path == null)
 			return false; // pathfinding failed
 
@@ -107,7 +115,7 @@ public class Vehicle : MonoBehaviour {
 	}
 
 	void Update () {
-		if (GameTime.inst.paused) return;
+		if (g.game_time.paused) return;
 		if (cur_building == null && target_building == null) return; // handle vehicle spawned while no buildings exist gracefully
 
 		if (cur_building) {
@@ -129,7 +137,7 @@ public class Vehicle : MonoBehaviour {
 			transform.position = pos + dir * motion.cur_dist;
 			transform.rotation = Quaternion.LookRotation(dir);
 
-			float step = max_speed * GameTime.inst.dt;
+			float step = max_speed * g.game_time.dt;
 			motion.cur_dist += step;
 
 			if (motion.cur_dist > motion.cur_road.length) {

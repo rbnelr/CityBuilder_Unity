@@ -7,8 +7,6 @@ using Random = Unity.Mathematics.Random;
 
 public class TestMapBuilder : MonoBehaviour {
 
-	Entities entities => Entities.inst;
-
 	[Range(1, 500)]
 	public int grid = 10;
 	public float spacing = 60;
@@ -45,11 +43,11 @@ public class TestMapBuilder : MonoBehaviour {
 		if (type1 && !at_edge) {
 			if (type2_0 || type2_1) {
 				flip = type2_0;
-				return entities.medium_road_asym_asset;
+				return g.entities.medium_road_asym_asset;
 			}
-			return entities.medium_road_asset;
+			return g.entities.medium_road_asset;
 		}
-		return entities.small_road_asset;
+		return g.entities.small_road_asset;
 	}
 	void create_segment (Road prefab, Junction node_a, Junction node_b, bool flip) {
 		Debug.Assert(node_a && node_b && node_a != node_b);
@@ -64,12 +62,12 @@ public class TestMapBuilder : MonoBehaviour {
 	
 	[Button("Destroy All")]
 	private void destroy_all () {
-		entities.destroy_all();
+		g.entities.destroy_all();
 	}
 
 	[Button("Recreate Map")]
 	private void recreate_map () {
-		entities.destroy_all();
+		g.entities.destroy_all();
 
 		var junctions = new Dictionary<int2, Junction>();
 
@@ -103,7 +101,7 @@ public class TestMapBuilder : MonoBehaviour {
 		for (int x=0; x<grid+1; ++x) {
 			var asset = road_type(int2(x,y), 1, out bool flip);
 
-			if (asset != entities.small_road_asset || rand.Chance(connection_chance)) {
+			if (asset != g.entities.small_road_asset || rand.Chance(connection_chance)) {
 				var a = junctions[int2(x, y)];
 				var b = junctions[int2(x, y+1)];
 				create_segment(asset, a, b, flip);
@@ -114,7 +112,7 @@ public class TestMapBuilder : MonoBehaviour {
 		//	junc.update_cached(intersection_radius);
 		//	junc.set_defaults();
 		//}
-		foreach (var road in entities.roads_go.GetComponentsInChildren<Road>()) {
+		foreach (var road in g.entities.roads_go.GetComponentsInChildren<Road>()) {
 			road.refresh(reset: true); // update road end positions
 		}
 
@@ -142,13 +140,13 @@ public class TestMapBuilder : MonoBehaviour {
 			float3 building_size = float3(16, 16, 7); // TODO
 
 			{
-				var building = Building.create(rand.Pick(entities.building_assets));
+				var building = Building.create(rand.Pick(g.entities.building_assets));
 				building.transform.position = base_pos + road_center + float3(0, 0, roadR + building_size.z);
 				building.transform.rotation = Quaternion.Euler(0,180,0);
 				building.connected_road = conn_seg;
 			}
 			{
-				var building = Building.create(rand.Pick(entities.building_assets));
+				var building = Building.create(rand.Pick(g.entities.building_assets));
 				building.transform.position = base_pos + road_center - float3(0, 0, -roadL + building_size.z);
 				building.transform.rotation = Quaternion.Euler(0,0,0);
 				building.connected_road = conn_seg;
@@ -160,18 +158,18 @@ public class TestMapBuilder : MonoBehaviour {
 	
 	[Button("Respawn Vehicles")]
 	void respawn_vehicles () {
-		entities.destroy_vehicles();
+		g.entities.destroy_vehicles();
 		
 		adjust_vehicle_count();
 	}
 	void adjust_vehicle_count () {
-		while (entities.vehicles_go.transform.childCount < num_vehicles) {
+		while (g.entities.vehicles_go.transform.childCount < num_vehicles) {
 			spawn_vehicle();
 		}
-		if (entities.vehicles_go.transform.childCount > num_vehicles) {
-			int to_destroy = entities.vehicles_go.transform.childCount - num_vehicles;
+		if (g.entities.vehicles_go.transform.childCount > num_vehicles) {
+			int to_destroy = g.entities.vehicles_go.transform.childCount - num_vehicles;
 			for (int i=0; i<to_destroy; ++i) {
-				var c = entities.vehicles_go.transform.GetChild(entities.vehicles_go.transform.childCount-1-i);
+				var c = g.entities.vehicles_go.transform.GetChild(g.entities.vehicles_go.transform.childCount-1-i);
 				Destroy(c.gameObject);
 			}
 		}
@@ -179,10 +177,10 @@ public class TestMapBuilder : MonoBehaviour {
 
 
 	void spawn_vehicle () {
-		var asset = rand.Pick(entities.vehicle_assets);
+		var asset = rand.Pick(g.entities.vehicle_assets);
 
 		var vehicle = Vehicle.create(asset);
 
-		vehicle.cur_building = rand.Pick(entities.buildings_go.GetComponentsInChildren<Building>());
+		vehicle.cur_building = rand.Pick(g.entities.buildings_go.GetComponentsInChildren<Building>());
 	}
 }

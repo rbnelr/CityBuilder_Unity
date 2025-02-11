@@ -30,12 +30,36 @@ public class Flycam : MonoBehaviour {
 	
 	public bool planar_move = false;
 	
-	//[Range(1.0f/10, 179.0f)]
-	public SmoothedVar fov = new SmoothedVar { value = 70, smoothing_time = 0.1f };
-	float default_vfov = 70;
+#region FOV
+	// smoothed fov while gracefully handling public API and inspector
+
+	// get: real fov
+	// set: set real fov without smoothing
+	public float fov {
+		get => GetComponent<Camera>().fieldOfView;
+		set {
+			GetComponent<Camera>().fieldOfView = value;
+			fov_target = value;
+			fov_velocity = 0;
+		}
+	}
+	void hard_set_fov () { fov = fov_target; }
+
+	// serialize fov target (since we can't serialize/inspect properties)
+	// on inspector modification don't smooth
+	[SerializeField, InspectorName("FOV"), Range(0.1f, 179.0f), OnValueChanged("hard_set_fov")]
+	public float fov_target = 70;
+	
+	public float fov_min = 0.1f;
+	public float fov_max = 179;
+	public float fov_smoothing = 0.1f;
+	float fov_velocity;
+	float default_fov;
+#endregion
 	
 	private void Awake () {
-		default_vfov = fov.value;
+		fov = fov_target; // don't smooth fov after deserialize
+		default_fov = fov; // store fov to allow reset to default
 	}
 
 #region controls
@@ -74,7 +98,7 @@ public class Flycam : MonoBehaviour {
 		// scaling by FOV might not be wanted in all situations (180 flick in a shooter would need new muscle memory with other fov)
 		// but usually muscle memory for flicks are supposedly based on offsets on screen, which do scale with FOV, so FOV scaled sens seems to be better
 		// look_sensitivity is basically  screen heights per 100 mouse dots, where dots are moved mouse distance in inch * mouse dpi
-		look *= 0.001f * look_mouse_sensitivity * fov.value;
+		look *= 0.001f * look_mouse_sensitivity * fov;
 		
 		if (lock_cursor || manual_look) {
 			return look;
@@ -163,16 +187,16 @@ public class Flycam : MonoBehaviour {
 				base_speed = clamp(pow(2.0f, log), 0.001f, max_speed);
 			}
 			else { // F+scroll changes fov
-				float log = log2(fov.target_value);
+				float log = log2(fov_target);
 				log -= 0.1f * scroll_delta;
-				fov.target_value = clamp(pow(2.0f, log), 1.0f/10, 170.0f);
+				fov_target = clamp(pow(2.0f, log), fov_min, fov_max);
 				
 				if (Keyboard.current.leftShiftKey.isPressed && scroll_delta != 0) // shift+F+scroll resets fov
-					fov.value = default_vfov;
+					fov = default_fov;
 			}
 
-			fov.Update(Time.unscaledDeltaTime);
-			GetComponent<Camera>().fieldOfView = fov.value;
+			// smooth fov to fov_target
+			GetComponent<Camera>().fieldOfView = Mathf.SmoothDamp(fov, fov_target, ref fov_velocity, fov_smoothing, float.PositiveInfinity, Time.unscaledDeltaTime);
 		}
 
 		{ //// Camera rotation

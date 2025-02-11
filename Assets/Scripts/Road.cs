@@ -53,7 +53,7 @@ public class Road : MonoBehaviour {
 	}
 
 	public static Road create (Road prefab, Junction a, Junction b) {
-		var road = Instantiate(prefab, Entities.inst.roads_go.transform);
+		var road = Instantiate(prefab, g.entities.roads_go.transform);
 		road.junc_a = a;
 		road.junc_b = b;
 

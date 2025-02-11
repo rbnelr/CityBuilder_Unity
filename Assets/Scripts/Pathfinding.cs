@@ -7,12 +7,6 @@ using Random = Unity.Mathematics.Random;
 using UnityEditor;
 
 public class Pathfinding : MonoBehaviour {
-	public static Pathfinding inst;
-	void Awake () {
-		inst = this;
-	}
-
-	Entities entities => Entities.inst;
 
 	// Pathfinding ignores lanes other than checking if any lane allows the turn to a node being visited
 	// Note: lane selection happens later during car path follwing, a few segments into the future
@@ -29,7 +23,7 @@ public class Pathfinding : MonoBehaviour {
 		var unvisited = new Utils.PriorityQueue<Junction, float>();
 
 		// prepare all nodes
-		foreach (var node in entities.junctions) {
+		foreach (var node in g.entities.junctions) {
 			node._cost = float.PositiveInfinity;
 			node._visited = false;
 			//node._q_idx = -1;
@@ -177,13 +171,13 @@ public class Pathfinding : MonoBehaviour {
 		if (!visualize_last_pathfind) return;
 	
 		float max_cost = 0;
-		foreach (var node in entities.junctions) {
+		foreach (var node in g.entities.junctions) {
 			if (node._visited) {
 				max_cost = max(max_cost, node._cost);
 			}
 		}
 
-		foreach (var node in entities.junctions) {
+		foreach (var node in g.entities.junctions) {
 			if (node._visited) {
 				Color col = Color.Lerp(Color.magenta, Color.red, node._cost / max_cost);
 				

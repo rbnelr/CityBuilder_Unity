@@ -6,8 +6,9 @@ using static Unity.Mathematics.math;
 using Random = Unity.Mathematics.Random;
 
 public class Entities : MonoBehaviour {
-	public static Entities inst;
-	void Awake () {
+	public static Entities inst { get; private set; }
+	void OnEnable () {
+		Debug.Assert(inst == null);
 		inst = this;
 	}
 
