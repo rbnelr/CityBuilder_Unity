@@ -41,8 +41,8 @@ public class Vehicle : MonoBehaviour {
 	//     lets say vehicles follow 20 nodes, then always repath with new traffic data (and constantly update the next few lanes)
 
 	struct Motion {
-		public Road cur_road;
-		public Road.LanePath path;
+		public Bezier bezier;
+		public float bez_length;
 		public float cur_dist;
 	};
 	
@@ -53,26 +53,59 @@ public class Vehicle : MonoBehaviour {
 	Motion motion;
 	int _path_idx;
 	
+	RoadDirection get_road_dir (int path_idx) {
+		Road cur_road = path[path_idx];
+		if (path_idx == 0) {
+			var next_junc = Junction.between(cur_road, path[path_idx+1]);
+			return next_junc != cur_road.junc_a ? RoadDirection.Forward : RoadDirection.Backward;
+		}
+		else {
+			var prev_junc = Junction.between(path[path_idx-1], cur_road);
+			return prev_junc == cur_road.junc_a ? RoadDirection.Forward : RoadDirection.Backward;
+		}
+	}
+	// TODO: split lanes by direction by default so this becomes unneeded
+	Road.Lane pick_lane (Road road, RoadDirection dir) {
+		return rand.Pick(road.lanes.Where(x => x.dir == dir).ToArray());
+	}
+
 	IEnumerable<Motion> follow_path () {
 		Debug.Assert(path.Length >= 2);
 
+		Road cur_road = path[0];
+		Road.Lane cur_lane = pick_lane(cur_road, get_road_dir(0));
+
 		for (_path_idx=0; _path_idx<path.Length; _path_idx++) {
-			int i = _path_idx;
-			Road cur_road = path[i];
+			//// Road
+			var bezier = cur_road.get_lane_path(cur_lane);
 
-			RoadDirection dir;
-			if (i == 0) {
-				var next_junc = Junction.between(cur_road, path[i+1]);
-				dir = next_junc != cur_road.junc_a ? RoadDirection.Forward : RoadDirection.Backward;
-			}
-			else {
-				var prev_junc = Junction.between(path[i-1], cur_road);
-				dir = prev_junc == cur_road.junc_a ? RoadDirection.Forward : RoadDirection.Backward;
-			}
+			yield return new Motion {
+				bezier = bezier,
+				bez_length = bezier.approx_len(),
+				cur_dist = 0
+			};
 
-			int lane = rand.Pick(cur_road.lanes.Select((x,i) => new { lane=x, idx=i }).Where(x => x.lane.dir == dir).Select(x => x.idx).ToArray());
+			if (_path_idx == path.Length-1)
+				break; // No junction at end
 
-			yield return new Motion { cur_road = cur_road, path = cur_road.get_lane_path(cur_road.lanes[lane]), cur_dist = 0 };
+			//// Junction
+			Road next_road = path[_path_idx+1];
+			Road.Lane next_lane = pick_lane(next_road, get_road_dir(_path_idx+1));
+
+			var next_bezier = next_road.get_lane_path(next_lane);
+
+			float3 a = bezier.eval(1).pos;
+			float3 b = next_bezier.eval(0).pos;
+			bezier = new Bezier(a, lerp(a,b,0.333f), lerp(a,b,0.667f), b);
+
+			yield return new Motion {
+				bezier = bezier,
+				bez_length = bezier.approx_len(),
+				cur_dist = 0
+			};
+
+			cur_road = next_road;
+			cur_lane = next_lane;
 		}
 	}
 
@@ -131,16 +164,16 @@ public class Vehicle : MonoBehaviour {
 		}
 		
 		if (!cur_building) {
-			float3 pos = motion.path.a;
-			float3 dir = normalizesafe(motion.path.b - motion.path.a);
+			float bez_t = motion.cur_dist / motion.bez_length;
+			var bez = motion.bezier.eval(bez_t);
 			
-			transform.position = pos + dir * motion.cur_dist;
-			transform.rotation = Quaternion.LookRotation(dir);
+			transform.position = bez.pos;
+			transform.rotation = Quaternion.LookRotation(bez.vel);
 
 			float step = max_speed * g.game_time.dt;
 			motion.cur_dist += step;
 
-			if (motion.cur_dist > motion.cur_road.length) {
+			if (motion.cur_dist > motion.bez_length) {
 				if (!motion_enumer.MoveNext()) {
 					end_trip();
 					return;

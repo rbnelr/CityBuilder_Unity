@@ -31,25 +31,16 @@ public class Road : MonoBehaviour {
 
 	private void OnDrawGizmosSelected () {
 		foreach (var lane in lanes) {
+			Gizmos.color = lane.dir == RoadDirection.Forward ? Color.yellow : Color.blue;
 			get_lane_path(lane).debugdraw();
 		}
 	}
 
-	public struct LanePath {
-		public Lane _lane;
-		public float3 a, b;
-		public float3 eval (float t) => lerp(a, b, t);
-		public void debugdraw () {
-			Gizmos.color = _lane.dir == RoadDirection.Forward ? Color.yellow : Color.blue;
-			Extensions.GizmosDrawArrow(a + float3(0,0.05f,0), b-a, 1);
-		}
-	}
-	public LanePath get_lane_path (Lane lane) {
+	public Bezier get_lane_path (Lane lane) {
 		float3 a = transform.TransformPoint(lane.shift*10/width,0,-5);
 		float3 b = transform.TransformPoint(lane.shift*10/width,0,+5);
-		return lane.dir == RoadDirection.Forward ?
-			new LanePath { _lane=lane, a=a, b=b } :
-			new LanePath { _lane=lane, a=b, b=a };
+		var bez = new Bezier(a, lerp(a,b,0.333f), lerp(a,b,0.667f), b);
+		return lane.dir == RoadDirection.Forward ? bez : bez.reverse();
 	}
 
 	public static Road create (Road prefab, Junction a, Junction b) {
