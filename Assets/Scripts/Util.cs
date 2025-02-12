@@ -34,6 +34,33 @@ public static class Extensions {
 	}
 }
 
+public class MyMath {
+	// Rotate vector by 90 degrees in CW
+	public static float2 rotate90_right (float2 v) {
+		return float2(v.y, -v.x);
+	}
+	// Rotate vector by 90 degrees in CW around Y
+	public static float3 rotate90_right (float3 v) {
+		return float3(v.z, v.y, -v.x);
+	}
+
+	
+	public static bool line_line_intersect (float2 a, float2 ab, float2 c, float2 cd, out float2 out_point) {
+		out_point = 0;
+
+		// https://en.wikipedia.org/wiki/Line%E2%80%93line_intersection
+		float2 ac = c - a;
+		float numer = ac.x * cd.y - ac.y * cd.x;
+		float denom = ab.x * cd.y - ab.y * cd.x;
+		if (denom == 0)
+			return false; // parallel, either overlapping (numer == 0) or not
+
+		float u = numer / denom;
+		out_point = a + u*ab;
+		return true; // always intersect for now
+	}
+}
+
 // https://discussions.unity.com/t/logarithmic-slider/563185
 #if UNITY_EDITOR
 [CustomPropertyDrawer(typeof(LogarithmicRangeAttribute))]

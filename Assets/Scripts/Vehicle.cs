@@ -24,8 +24,6 @@ public class Vehicle : MonoBehaviour {
 		return vehicle;
 	}
 
-	static float3 parking_spot (Building b) => b.transform.TransformPoint(float3(0,0,8));
-
 	// TODO: probably need to turn generator function into manual state machine again, because:
 	// -not efficient, does a heap alloc per IEnumerator, likely forces Motion to exists twice (stored internally, but also by me if I want to mutate it
 	// -can't ask about total length of path afterwards unless I also manually store it
@@ -65,9 +63,11 @@ public class Vehicle : MonoBehaviour {
 		}
 	}
 	// TODO: split lanes by direction by default so this becomes unneeded
-	Road.Lane pick_lane (Road road, RoadDirection dir) {
+	static Road.Lane pick_lane (Road road, RoadDirection dir) {
 		return rand.Pick(road.lanes.Where(x => x.dir == dir).ToArray());
 	}
+
+	static float3 parking_spot (Building b) => b.transform.TransformPoint(float3(0,0,8));
 
 	IEnumerable<Motion> follow_path () {
 		Debug.Assert(path.Length >= 2);
@@ -76,7 +76,7 @@ public class Vehicle : MonoBehaviour {
 		Road.Lane cur_lane = pick_lane(cur_road, get_road_dir(0));
 
 		for (_path_idx=0; _path_idx<path.Length; _path_idx++) {
-			//// Road
+		//// Road
 			var bezier = cur_road.get_lane_path(cur_lane);
 
 			yield return new Motion {
@@ -88,15 +88,12 @@ public class Vehicle : MonoBehaviour {
 			if (_path_idx == path.Length-1)
 				break; // No junction at end
 
-			//// Junction
+		//// Junction
 			Road next_road = path[_path_idx+1];
 			Road.Lane next_lane = pick_lane(next_road, get_road_dir(_path_idx+1));
 
-			var next_bezier = next_road.get_lane_path(next_lane);
-
-			float3 a = bezier.eval(1).pos;
-			float3 b = next_bezier.eval(0).pos;
-			bezier = new Bezier(a, lerp(a,b,0.333f), lerp(a,b,0.667f), b);
+			var junc = Junction.between(cur_road, next_road);
+			bezier = junc.calc_curve(cur_road, next_road, cur_lane, next_lane);
 
 			yield return new Motion {
 				bezier = bezier,
@@ -149,7 +146,10 @@ public class Vehicle : MonoBehaviour {
 
 	void Update () {
 		if (g.game_time.paused) return;
-		if (cur_building == null && target_building == null) return; // handle vehicle spawned while no buildings exist gracefully
+		if (cur_building == null && target_building == null || (cur_building == null && motion_enumer == null)) {
+			Destroy(this.gameObject);
+			return; // handle vehicle spawned while no buildings exist gracefully
+		}
 
 		if (cur_building) {
 			transform.position = parking_spot(cur_building);

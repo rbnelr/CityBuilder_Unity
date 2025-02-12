@@ -6,7 +6,7 @@ using static UnityEngine.Rendering.DebugUI.MessageBox;
 [DefaultExecutionOrder(-1000)]
 public class DebugHUD : MonoBehaviour {
 	static DebugHUD inst;
-	private void Awake () {
+	void OnEnable () {
 		inst = this;
 	}
 
