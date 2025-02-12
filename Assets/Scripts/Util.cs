@@ -119,13 +119,17 @@ public class LogarithmicRangeAttribute : PropertyAttribute {
 }
 
 public struct Bezier {
-	float3 a, b, c, d;
+	public float3 a, b, c, d;
 	
 	public Bezier (float3 a, float3 b, float3 c, float3 d) {
 		this.a = a;
 		this.b = b;
 		this.c = c;
 		this.d = d;
+	}
+
+	public static Bezier from_line (float3 a, float3 b) {
+		return new Bezier(a, lerp(a,b,0.333333f), lerp(a,b,0.666667f), b);
 	}
 
 	public struct PosVel {

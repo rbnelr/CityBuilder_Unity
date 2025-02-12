@@ -45,6 +45,7 @@ public class Vehicle : MonoBehaviour {
 	};
 	
 	Road[] path;
+	Building start_building = null;
 	Building target_building = null;
 
 	IEnumerator<Motion> motion_enumer;
@@ -75,34 +76,55 @@ public class Vehicle : MonoBehaviour {
 		Road cur_road = path[0];
 		Road.Lane cur_lane = pick_lane(cur_road, get_road_dir(0));
 
-		for (_path_idx=0; _path_idx<path.Length; _path_idx++) {
-		//// Road
-			var bezier = cur_road.get_lane_path(cur_lane);
-
+		{ // building -> first lane
+			var bezier = Bezier.from_line(parking_spot(start_building), cur_road.get_lane_path(cur_lane).a);
 			yield return new Motion {
 				bezier = bezier,
 				bez_length = bezier.approx_len(),
 				cur_dist = 0
 			};
+		}
+
+		for (_path_idx=0; _path_idx<path.Length; _path_idx++) {
+			{ //// Road
+				var bezier = cur_road.get_lane_path(cur_lane);
+
+				yield return new Motion {
+					bezier = bezier,
+					bez_length = bezier.approx_len(),
+					cur_dist = 0
+				};
+			}
 
 			if (_path_idx == path.Length-1)
 				break; // No junction at end
-
-		//// Junction
+			
 			Road next_road = path[_path_idx+1];
 			Road.Lane next_lane = pick_lane(next_road, get_road_dir(_path_idx+1));
 
-			var junc = Junction.between(cur_road, next_road);
-			bezier = junc.calc_curve(cur_road, next_road, cur_lane, next_lane);
+			{ //// Junction
 
+				var junc = Junction.between(cur_road, next_road);
+				var bezier = junc.calc_curve(cur_road, next_road, cur_lane, next_lane);
+
+				yield return new Motion {
+					bezier = bezier,
+					bez_length = bezier.approx_len(),
+					cur_dist = 0
+				};
+			}
+
+			cur_road = next_road;
+			cur_lane = next_lane;
+		}
+
+		{ // last lane -> building
+			var bezier = Bezier.from_line(cur_road.get_lane_path(cur_lane).d, parking_spot(target_building));
 			yield return new Motion {
 				bezier = bezier,
 				bez_length = bezier.approx_len(),
 				cur_dist = 0
 			};
-
-			cur_road = next_road;
-			cur_lane = next_lane;
 		}
 	}
 
@@ -126,6 +148,7 @@ public class Vehicle : MonoBehaviour {
 		if (path == null)
 			return false; // pathfinding failed
 
+		start_building = cur_building;
 		target_building = targ;
 		cur_building = null;
 
@@ -138,6 +161,7 @@ public class Vehicle : MonoBehaviour {
 	void end_trip () {
 		transform.position = parking_spot(target_building);
 		
+		start_building = null;
 		cur_building = target_building;
 		target_building = null;
 		path = null;

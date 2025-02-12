@@ -60,7 +60,7 @@ public class Road : MonoBehaviour {
 		float3 a = transform.TransformPoint(lane.shift*10/width, lane.height, -5);
 		float3 b = transform.TransformPoint(lane.shift*10/width, lane.height, +5);
 
-		var bez = new Bezier(a, lerp(a,b,0.333f), lerp(a,b,0.667f), b);
+		var bez = Bezier.from_line(a, b);
 
 		return lane.dir == RoadDirection.Forward ? bez : bez.reverse();
 	}
