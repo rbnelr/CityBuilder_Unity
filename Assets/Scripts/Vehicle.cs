@@ -181,7 +181,7 @@ public class Vehicle : MonoBehaviour {
 			timer -= Time.deltaTime;
 
 			if (timer <= 0) {
-				start_trip(); // if fail try again in stay_time
+				bool success = start_trip(); // if fail try again in stay_time
 
 				timer = stay_time;
 			}

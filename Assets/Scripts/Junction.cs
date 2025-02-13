@@ -4,11 +4,6 @@ using UnityEngine;
 using Unity.Mathematics;
 using static Unity.Mathematics.math;
 using Random = Unity.Mathematics.Random;
-using static UnityEngine.Rendering.HableCurve;
-using static UnityEditor.PlayerSettings;
-using System.Drawing;
-using Unity.VisualScripting;
-using static Road;
 
 public class Junction : MonoBehaviour {
 	public float3 position {
@@ -50,7 +45,7 @@ public class Junction : MonoBehaviour {
 		}
 	}
 	
-	public Bezier calc_curve (Road road0, Road road1, Lane lane0, Lane lane1) {
+	public Bezier calc_curve (Road road0, Road road1, Road.Lane lane0, Road.Lane lane1) {
 		// calc_curve works with shifts 
 		float shift0 = lane0.dir == RoadDirection.Forward ? lane0.shift : -lane0.shift;
 		float shift1 = lane1.dir == RoadDirection.Forward ? -lane1.shift : lane1.shift;

@@ -4,8 +4,6 @@ using UnityEngine;
 using Unity.Mathematics;
 using static Unity.Mathematics.math;
 using Random = Unity.Mathematics.Random;
-using static Road;
-using UnityEditor.Experimental.GraphView;
 
 public class Road : MonoBehaviour {
 	public Junction junc_a { get; private set; }
@@ -109,7 +107,7 @@ public class Road : MonoBehaviour {
 		}
 		i.right = MyMath.rotate90_right(i.forw);
 		i.pos += i.right * shiftXY.x;
-		i.pos += float3(0, shiftXY.y, 0);
+		i.pos.z += shiftXY.y;
 		return i;
 	}
 	public EndInfo get_end_info (Junction junc, float2 shiftXY) {

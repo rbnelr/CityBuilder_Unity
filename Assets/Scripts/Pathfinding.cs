@@ -5,7 +5,9 @@ using Unity.Mathematics;
 using static Unity.Mathematics.math;
 using Random = Unity.Mathematics.Random;
 using UnityEditor;
+using UnityEngine.Profiling;
 
+[DefaultExecutionOrder(100)]
 public class Pathfinding : MonoBehaviour {
 
 	// Pathfinding ignores lanes other than checking if any lane allows the turn to a node being visited
@@ -14,22 +16,41 @@ public class Pathfinding : MonoBehaviour {
 	//  and support roads with median, ie no enter or exit buildings with left turn -> which might cause uturns so that segments get visited twice
 	//  supporting this might require keeping entries for both directions of segments
 	
-	public Road[] pathfind (Road start, Road dest) {
+	int pathing_count = 0;
+	double pathing_total_time = 0;
+	//int _dijk_iter = 0;
+	//int _dijk_iter_dupl = 0;
+	//int _dijk_iter_lanes = 0;
+
+	Junction[] _junctions;
+
+	public Road[] _pathfind (Road start, Road dest) {
 		// use dijkstra algorithm
 
 		if (start == null || dest == null)
 			return null;
 
 		var unvisited = new Utils.PriorityQueue<Junction, float>();
+		
+		if (_junctions == null) {
+			Profiler.BeginSample("get");
+			_junctions = transform.GetComponentsInChildren<Junction>();
+			Profiler.EndSample();
+		}
+
+		Profiler.BeginSample("prepare");
 
 		// prepare all nodes
-		foreach (var node in g.entities.junctions) {
+		//foreach (var node in g.entities.junctions) {
+		foreach (var node in _junctions) {
 			node._cost = float.PositiveInfinity;
 			node._visited = false;
 			//node._q_idx = -1;
 			node._pred = null;
 			node._pred_road = null;
 		}
+
+		Profiler.EndSample();
 
 		// FAILSAFE, TODO: fix!
 		// Currently if start == dest and forw,backw == true
@@ -59,8 +80,6 @@ public class Pathfinding : MonoBehaviour {
 			unvisited.Enqueue(start.junc_a, start.junc_a._cost);
 		}
 		
-		//net.pathing_count++;
-		//
 		//net._dijk_iter = 0;
 		//net._dijk_iter_dupl = 0;
 		//net._dijk_iter_lanes = 0;
@@ -164,8 +183,34 @@ public class Pathfinding : MonoBehaviour {
 
 		return path.ToArray();
 	}
+	public Road[] pathfind (Road start, Road dest) {
+		if (pathing_count > 50)
+			return null; // HACK: artifically fail pathfinding if too many pathfinds per frame, to avoid freezing the unity editor
+		
+		pathing_count++;
+
+		Profiler.BeginSample("pathfind");
+		var ts_begin = Time.realtimeSinceStartupAsDouble;
+
+		var res = _pathfind(start, dest);
+
+		pathing_total_time += Time.realtimeSinceStartupAsDouble - ts_begin;
+		Profiler.EndSample();
+
+		return res;
+	}
 
 	public bool visualize_last_pathfind = false;
+
+	private void Update () {
+		DebugHUD.Show(
+			$"Pathing Count: {pathing_count} "+
+			$"total: {pathing_total_time * 1000.0, 6:0.000}ms "+
+			$"avg: {pathing_total_time/pathing_count * 1000000.0, 6:0.000}us");
+
+		pathing_count = 0;
+		pathing_total_time = 0;
+	}
 
 	private void OnDrawGizmos () {
 		if (!visualize_last_pathfind) return;

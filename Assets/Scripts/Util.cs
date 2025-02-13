@@ -1,14 +1,11 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using Unity.Mathematics;
 using static Unity.Mathematics.math;
 using Random = Unity.Mathematics.Random;
-using System;
 using UnityEditor;
-using static UnityEditor.PlayerSettings;
-
-
 
 #nullable enable
 
