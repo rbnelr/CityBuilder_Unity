@@ -4,23 +4,25 @@ using UnityEngine;
 using Unity.Mathematics;
 using static Unity.Mathematics.math;
 using Random = Unity.Mathematics.Random;
-using NaughtyAttributes;
+using System;
 
 public class Vehicle : MonoBehaviour {
-	
+
 	static Random rand = new Random(1);
 
 	public float max_speed = 50 / 3.6f;
 
 	public Building cur_building = null;
 
-	static float stay_time => rand.NextFloat(2,5);
+	static float stay_time => rand.NextFloat(2, 5);
 	float timer = stay_time;
 
 	public Building target = null;
 
+	public static int _counter = 0;
 	public static Vehicle create (Vehicle prefab) {
 		var vehicle = Instantiate(prefab, g.entities.vehicles_go.transform);
+		vehicle.name = $"Vehicle #{_counter++}";
 		return vehicle;
 	}
 
@@ -43,7 +45,7 @@ public class Vehicle : MonoBehaviour {
 		public float bez_length;
 		public float cur_dist;
 	};
-	
+
 	Road[] path;
 	Building start_building = null;
 	Building target_building = null;
@@ -51,15 +53,15 @@ public class Vehicle : MonoBehaviour {
 	IEnumerator<Motion> motion_enumer;
 	Motion motion;
 	int _path_idx;
-	
+
 	RoadDirection get_road_dir (int path_idx) {
 		Road cur_road = path[path_idx];
 		if (path_idx == 0) {
-			var next_junc = Junction.between(cur_road, path[path_idx+1]);
+			var next_junc = Junction.between(cur_road, path[path_idx + 1]);
 			return next_junc != cur_road.junc_a ? RoadDirection.Forward : RoadDirection.Backward;
 		}
 		else {
-			var prev_junc = Junction.between(path[path_idx-1], cur_road);
+			var prev_junc = Junction.between(path[path_idx - 1], cur_road);
 			return prev_junc == cur_road.junc_a ? RoadDirection.Forward : RoadDirection.Backward;
 		}
 	}
@@ -68,7 +70,7 @@ public class Vehicle : MonoBehaviour {
 		return rand.Pick(road.lanes.Where(x => x.dir == dir).ToArray());
 	}
 
-	static float3 parking_spot (Building b) => b.transform.TransformPoint(float3(0,0,8));
+	static float3 parking_spot (Building b) => b.transform.TransformPoint(float3(0, 0, 8));
 
 	IEnumerable<Motion> follow_path () {
 		Debug.Assert(path.Length >= 2);
@@ -85,7 +87,7 @@ public class Vehicle : MonoBehaviour {
 			};
 		}
 
-		for (_path_idx=0; _path_idx<path.Length; _path_idx++) {
+		for (_path_idx = 0; _path_idx < path.Length; _path_idx++) {
 			{ //// Road
 				var bezier = cur_road.get_lane_path(cur_lane);
 
@@ -96,11 +98,11 @@ public class Vehicle : MonoBehaviour {
 				};
 			}
 
-			if (_path_idx == path.Length-1)
+			if (_path_idx == path.Length - 1)
 				break; // No junction at end
-			
-			Road next_road = path[_path_idx+1];
-			Road.Lane next_lane = pick_lane(next_road, get_road_dir(_path_idx+1));
+
+			Road next_road = path[_path_idx + 1];
+			Road.Lane next_lane = pick_lane(next_road, get_road_dir(_path_idx + 1));
 
 			{ //// Junction
 
@@ -129,15 +131,17 @@ public class Vehicle : MonoBehaviour {
 	}
 
 	// TODO: Could track progress in kilometer and or time and ETA in minutes
-	[ShowNativeProperty]
-	public string TripProgress { get {
-		if (cur_building == null && target_building == null) return "";
-		
-		if (cur_building != null) {
-			return $"parked at {cur_building}";
+	[NaughtyAttributes.ShowNativeProperty]
+	public string TripProgress {
+		get {
+			if (cur_building == null && target_building == null) return "";
+
+			if (cur_building != null) {
+				return $"parked at {cur_building}";
+			}
+			return $"{_path_idx}/{path.Length}";
 		}
-		return $"{_path_idx}/{path.Length}";
-	}}
+	}
 
 	bool start_trip () {
 		var targ = rand.Pick(g.entities.buildings_go.GetComponentsInChildren<Building>());
@@ -160,7 +164,7 @@ public class Vehicle : MonoBehaviour {
 	}
 	void end_trip () {
 		transform.position = parking_spot(target_building);
-		
+
 		start_building = null;
 		cur_building = target_building;
 		target_building = null;
@@ -186,11 +190,11 @@ public class Vehicle : MonoBehaviour {
 				timer = stay_time;
 			}
 		}
-		
+
 		if (!cur_building) {
 			float bez_t = motion.cur_dist / motion.bez_length;
 			var bez = motion.bezier.eval(bez_t);
-			
+
 			transform.position = bez.pos;
 			transform.rotation = Quaternion.LookRotation(bez.vel);
 
@@ -206,4 +210,12 @@ public class Vehicle : MonoBehaviour {
 			}
 		}
 	}
+}
+
+[Newtonsoft.Json.JsonConverter(typeof(VehicleAssetSerializer))]
+public class VehicleAsset : MonoBehaviour {
+	public float max_speed = 50 / 3.6f;
+
+	public string model_file;
+	public string texture_files;
 }

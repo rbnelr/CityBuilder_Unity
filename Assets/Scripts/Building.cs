@@ -10,9 +10,11 @@ using UnityEditor;
 public class Building : MonoBehaviour {
 
 	public Road connected_road;
-
+	
+	public static int _counter = 0;
 	public static Building create (Building prefab) {
 		var building = Instantiate(prefab, g.entities.buildings_go.transform);
+		building.name = $"Building #{_counter++}";
 		return building;
 	}
 

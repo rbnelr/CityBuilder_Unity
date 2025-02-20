@@ -22,7 +22,7 @@ public class Pathfinding : MonoBehaviour {
 	//int _dijk_iter_dupl = 0;
 	//int _dijk_iter_lanes = 0;
 
-	Junction[] _junctions;
+	//Junction[] _junctions;
 
 	public Road[] _pathfind (Road start, Road dest) {
 		// use dijkstra algorithm
@@ -32,11 +32,12 @@ public class Pathfinding : MonoBehaviour {
 
 		var unvisited = new Utils.PriorityQueue<Junction, float>();
 		
-		if (_junctions == null) {
-			Profiler.BeginSample("get");
-			_junctions = transform.GetComponentsInChildren<Junction>();
-			Profiler.EndSample();
-		}
+		//if (_junctions == null) {
+		//	Profiler.BeginSample("get");
+		//	_junctions = transform.GetComponentsInChildren<Junction>();
+		//	Profiler.EndSample();
+		//}
+		var _junctions = transform.GetComponentsInChildren<Junction>();
 
 		Profiler.BeginSample("prepare");
 

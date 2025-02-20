@@ -1,0 +1,46 @@
+{
+	"vehicles": [
+		{
+			"name": "small",
+			"model_file": "small.glb",
+			"texture_files": "Textures/car%.png",
+			"max_speed": 10
+		},
+		{
+			"name": "smart",
+			"model_file": "smart.glb",
+			"texture_files": "Textures/car%.png",
+			"max_speed": 10
+		},
+		{
+			"name": "limo",
+			"model_file": "limo.glb",
+			"texture_files": "Textures/car%.png",
+			"max_speed": 10
+		},
+		{
+			"name": "SUV",
+			"model_file": "SUV.glb",
+			"texture_files": "Textures/car%.png",
+			"max_speed": 10
+		},
+		{
+			"name": "combi",
+			"model_file": "combi.glb",
+			"texture_files": "Textures/car%.png",
+			"max_speed": 10
+		},
+		{
+			"name": "van",
+			"model_file": "van.glb",
+			"texture_files": "Textures/car%.png",
+			"max_speed": 10
+		},
+		{
+			"name": "bus",
+			"model_file": "bus.glb",
+			"texture_files": "Textures/bus%.png",
+			"max_speed": 10
+		}
+	]
+}

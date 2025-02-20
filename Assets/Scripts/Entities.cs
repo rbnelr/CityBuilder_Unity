@@ -29,27 +29,14 @@ public class Entities : MonoBehaviour {
 	public IEnumerable<Road> roads => transform.GetComponentsInChildren<Road>();
 	public IEnumerable<Junction> junctions => transform.GetComponentsInChildren<Junction>();
 	
-	void destroy_children (GameObject go) {
-		if (Application.isEditor) {
-			for (int i=go.transform.childCount-1; i>=0; i--) {
-				DestroyImmediate(go.transform.GetChild(i).gameObject);
-			}
-		}
-		else {
-			foreach (Transform c in go.transform) {
-				Destroy(c.gameObject);
-			}
-		}
-	}
-
 	public void destroy_all () {
-		destroy_children(roads_go);
-		destroy_children(junctions_go);
-		destroy_children(buildings_go);
+		Util.DestroyChildren(roads_go.transform);
+		Util.DestroyChildren(junctions_go.transform);
+		Util.DestroyChildren(buildings_go.transform);
 
 		destroy_vehicles();
 	}
 	public void destroy_vehicles () {
-		destroy_children(vehicles_go);
+		Util.DestroyChildren(vehicles_go.transform);
 	}
 }

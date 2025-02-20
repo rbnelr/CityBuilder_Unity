@@ -62,9 +62,12 @@ public class Road : MonoBehaviour {
 
 		return lane.dir == RoadDirection.Forward ? bez : bez.reverse();
 	}
-
+	
+	public static int _counter = 0;
 	public static Road create (Road prefab, Junction a, Junction b) {
 		var road = Instantiate(prefab, g.entities.roads_go.transform);
+		road.name = $"Road #{_counter++}";
+
 		road.junc_a = a;
 		road.junc_b = b;
 

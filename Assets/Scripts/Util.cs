@@ -6,10 +6,11 @@ using Unity.Mathematics;
 using static Unity.Mathematics.math;
 using Random = Unity.Mathematics.Random;
 using UnityEditor;
+using Newtonsoft.Json.Linq;
 
 #nullable enable
 
-public static class Extensions {
+public static class Util {
 	public static bool Chance (this ref Random rand, float probabilty) {
 		return rand.NextFloat(0, 1) < probabilty;
 	}
@@ -21,6 +22,18 @@ public static class Extensions {
 		return default;
 	}
 
+	public static T? TryGet<T> (this JObject jobj, string key) {
+		if (jobj.TryGetValue(key, out JToken? value)) return value.Value<T>();
+		return default;
+	}
+	public static bool TryGet<T> (this JObject jobj, string key, ref T value) {
+		if (jobj.TryGetValue(key, out JToken? val)) {
+			value = val.Value<T>()!;
+			return true;
+		}
+		return false;
+	}
+
 	public static void GizmosDrawArrow (Vector3 pos, Vector3 direction, float arrowHeadLength = 0.25f, float arrowHeadAngle = 20.0f) {
 		Gizmos.DrawRay(pos, direction);
 		
@@ -28,6 +41,43 @@ public static class Extensions {
 		Vector3 left = Quaternion.LookRotation(direction) * Quaternion.Euler(0,180-arrowHeadAngle,0) * new Vector3(0,0,1);
 		Gizmos.DrawRay(pos + direction, right * arrowHeadLength);
 		Gizmos.DrawRay(pos + direction, left * arrowHeadLength);
+	}
+
+	public static GameObject? FindChildGameObjectByName (GameObject parent, string name) {
+		for (int i=0; i<parent.transform.childCount; i++) {
+			var child = parent.transform.GetChild(i).gameObject!;
+
+			if (child.name == name) {
+				return child;
+			}
+
+			GameObject? res = FindChildGameObjectByName(child, name);
+			if (res != null)
+				return res;
+		}
+
+		return null;
+	}
+	
+	public static void Destroy (Transform transform) {
+		if (Application.isEditor) {
+			MonoBehaviour.DestroyImmediate(transform.gameObject);
+		}
+		else {
+			MonoBehaviour.Destroy(transform.gameObject);
+		}
+	}
+	public static void DestroyChildren (Transform transform) {
+		if (Application.isEditor) {
+			for (int i=transform.childCount-1; i>=0; i--) {
+				MonoBehaviour.DestroyImmediate(transform.GetChild(i).gameObject);
+			}
+		}
+		else {
+			foreach (Transform c in transform) {
+				MonoBehaviour.Destroy(c.gameObject);
+			}
+		}
 	}
 }
 
@@ -156,7 +206,7 @@ public struct Bezier {
 			float3 pos = eval(t).pos;
 
 			if (i < res-1) Gizmos.DrawLine(prev, pos);
-			else           Extensions.GizmosDrawArrow(prev, pos-prev, 1);
+			else           Util.GizmosDrawArrow(prev, pos-prev, 1);
 
 			prev = pos;
 		}

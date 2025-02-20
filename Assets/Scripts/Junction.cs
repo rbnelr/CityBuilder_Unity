@@ -22,8 +22,10 @@ public class Junction : MonoBehaviour {
 	public Junction _pred;
 	public Road _pred_road;
 	
+	public static int _counter = 0;
 	public static Junction create () {
 		var junction = Instantiate(g.entities.junction_prefab, g.entities.junctions_go.transform);
+		junction.name = $"Junction #{_counter++}";
 		return junction;
 	}
 
