@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using UnityEditor;
 using UnityEngine;
-using UnityGLTF;
+using GLTFast;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Unity.Mathematics;
@@ -50,6 +50,10 @@ public class AssetManager : MonoBehaviour {
 	// List of loaded assets
 	public List<VehicleAsset> vehicles;
 
+	void OnEnable () {
+		ReloadAll();
+	}
+
 	// Currently:
 	//  centering since I like to place multiple models side by side in blender
 	//  and blender Y-forward -> Unity Z-forward
@@ -71,24 +75,34 @@ public class AssetManager : MonoBehaviour {
 		}
 	}
 	
+	public ImportSettings import_setting = new ImportSettings();
+
 	public async Task<GameObject> load_gltf_model (string name, string filepath, Transform parent) {
-		var importer = new GLTFSceneImporter(filepath, new ImportOptions());
+		try {
+			var deferAgent = Application.isEditor ? new UninterruptedDeferAgent() : null; // needed to fix exception in editor mode
+			var importer = new GltfImport(null, deferAgent);
 
-		// GLTFSceneImporter builds GO hierarchy in scene, place it under this GO
-		importer.SceneParent = parent;
+			bool success = await importer.Load(filepath, import_setting);
+			if (!success) throw new Exception("GltfImport.Load error");
 
-		await importer.LoadSceneAsync();
+			success = await importer.InstantiateMainSceneAsync(parent);
+			if (!success) throw new Exception("GltfImport.InstantiateMainSceneAsync error");
+			
+			// scene (wrapper object)
+			var scene = parent.gameObject;
 
-		// scene (wrapper object)
-		var scene = importer.LastLoadedScene;
-		// object with the mesh renderer, and children bones for skinned mesh renderers
-		var obj = scene.transform.GetChild(0).gameObject;
-
-		importer.LastLoadedScene.name = "gltf scene";
-
-		fix_transform(obj);
-
-		return scene;
+			// object with the mesh renderer, and children bones for skinned mesh renderers
+			var obj = scene.transform.GetChild(0).gameObject;
+			obj.name = "gltf scene";
+			
+			fix_transform(obj);
+			
+			return scene;
+		}
+		catch (Exception e) {
+			Debug.LogError($"Error {e.Message}");
+			throw e;
+		}
 	}
 }
 
@@ -135,13 +149,17 @@ public class VehicleAssetSerializer : JsonConverter {
 			string path = Path.Combine(g.assets.content_dir, asset.model_file);
 			var task = g.assets.load_gltf_model(asset.name, path, asset.transform);
 
-			task.GetAwaiter().OnCompleted(() => {
+			task.Wait(1000);
+			//task.GetAwaiter().OnCompleted(() => {
 				var obj = task.Result;
 				var renderer = obj.GetComponentInChildren<SkinnedMeshRenderer>();
 				renderer.sharedMaterial = asset.name == "bus" ? g.assets.bus_material : g.assets.car_material; // TODO: Actually add runtime texture loading!
+				renderer.updateWhenOffscreen = false; // Not really needed in for vehicles
 
+				asset.prefab = obj;
+			
 				Debug.Log($"Asset gltf loaded for {asset.name}");
-			});
+			//});
 			
 			Debug.Log($"Asset definition loaded for {asset.name}");
 			return asset;

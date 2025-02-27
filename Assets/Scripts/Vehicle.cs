@@ -8,22 +8,31 @@ using System;
 
 public class Vehicle : MonoBehaviour {
 
-	static Random rand = new Random(1);
-
-	public float max_speed = 50 / 3.6f;
+	public VehicleAsset asset { get; private set; }
 
 	public Building cur_building = null;
+	public Building target = null;
 
+	static Random rand = new Random(1);
 	static float stay_time => rand.NextFloat(2, 5);
 	float timer = stay_time;
 
-	public Building target = null;
-
 	public static int _counter = 0;
-	public static Vehicle create (Vehicle prefab) {
-		var vehicle = Instantiate(prefab, g.entities.vehicles_go.transform);
-		vehicle.name = $"Vehicle #{_counter++}";
+	public static Vehicle create (VehicleAsset asset) {
+		Debug.Assert(asset.prefab); // fail if mesh not loaded yet
+
+		var go = new GameObject($"Vehicle #{_counter++}", typeof(Vehicle));
+		var vehicle = go.GetComponent<Vehicle>();
+		vehicle.transform.SetParent(g.entities.vehicles_go.transform);
+
+		vehicle.load_asset(asset);
+		
 		return vehicle;
+	}
+	public void load_asset (VehicleAsset asset) {
+		Debug.Assert(this.asset == null);
+		Instantiate(asset.prefab, transform);
+		this.asset = asset;
 	}
 
 	// TODO: probably need to turn generator function into manual state machine again, because:
@@ -174,6 +183,7 @@ public class Vehicle : MonoBehaviour {
 
 	void Update () {
 		if (g.game_time.paused) return;
+
 		if (cur_building == null && target_building == null || (cur_building == null && motion_enumer == null)) {
 			Destroy(this.gameObject);
 			return; // handle vehicle spawned while no buildings exist gracefully
@@ -198,7 +208,7 @@ public class Vehicle : MonoBehaviour {
 			transform.position = bez.pos;
 			transform.rotation = Quaternion.LookRotation(bez.vel);
 
-			float step = max_speed * g.game_time.dt;
+			float step = asset.max_speed * g.game_time.dt;
 			motion.cur_dist += step;
 
 			if (motion.cur_dist > motion.bez_length) {
@@ -215,7 +225,11 @@ public class Vehicle : MonoBehaviour {
 [Newtonsoft.Json.JsonConverter(typeof(VehicleAssetSerializer))]
 public class VehicleAsset : MonoBehaviour {
 	public float max_speed = 50 / 3.6f;
+	public float spawn_weight = 1;
 
 	public string model_file;
 	public string texture_files;
+
+	[NonSerialized]
+	public GameObject prefab; // created by importer
 }

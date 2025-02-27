@@ -177,7 +177,7 @@ public class TestMapBuilder : MonoBehaviour {
 
 
 	void spawn_vehicle () {
-		var asset = rand.Pick(g.entities.vehicle_assets);
+		var asset = rand.Pick(g.assets.vehicles);
 
 		var vehicle = Vehicle.create(asset);
 
