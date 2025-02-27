@@ -24,6 +24,7 @@ public class Entities : MonoBehaviour {
 	public Road small_road_asset;
 	
 	public Building[] building_assets;
+	public VehicleAsset[] vehicle_assets;
 
 	public IEnumerable<Road> roads => transform.GetComponentsInChildren<Road>();
 	public IEnumerable<Junction> junctions => transform.GetComponentsInChildren<Junction>();

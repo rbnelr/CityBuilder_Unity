@@ -19,20 +19,10 @@ public class Vehicle : MonoBehaviour {
 
 	public static int _counter = 0;
 	public static Vehicle create (VehicleAsset asset) {
-		Debug.Assert(asset.prefab); // fail if mesh not loaded yet
-
-		var go = new GameObject($"Vehicle #{_counter++}", typeof(Vehicle));
-		var vehicle = go.GetComponent<Vehicle>();
-		vehicle.transform.SetParent(g.entities.vehicles_go.transform);
-
-		vehicle.load_asset(asset);
-		
+		var vehicle = Instantiate(asset.prefab, g.entities.vehicles_go.transform).GetComponent<Vehicle>();
+		vehicle.name = $"Vehicle #{_counter++}";
+		vehicle.asset = asset;
 		return vehicle;
-	}
-	public void load_asset (VehicleAsset asset) {
-		Debug.Assert(this.asset == null);
-		Instantiate(asset.prefab, transform);
-		this.asset = asset;
 	}
 
 	// TODO: probably need to turn generator function into manual state machine again, because:
@@ -231,5 +221,5 @@ public class VehicleAsset : MonoBehaviour {
 	public string texture_files;
 
 	[NonSerialized]
-	public GameObject prefab; // created by importer
+	public GameObject prefab;
 }

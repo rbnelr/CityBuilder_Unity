@@ -403,37 +403,6 @@ MonoBehaviour:
   m_LightCookieSize: {x: 1, y: 1}
   m_LightCookieOffset: {x: 0, y: 0}
   m_SoftShadowQuality: 1
---- !u!1 &451437868
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 451437869}
-  m_Layer: 0
-  m_Name: Vehicles
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &451437869
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 451437868}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 1407878488}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &667746290
 GameObject:
   m_ObjectHideFlags: 0
@@ -763,6 +732,38 @@ Camera:
   m_OcclusionCulling: 1
   m_StereoConvergence: 10
   m_StereoSeparation: 0.022
+--- !u!1 &1370854317
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1370854318}
+  m_Layer: 0
+  m_Name: EditorScripts
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1370854318
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1370854317}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 1455922070}
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1383475722
 GameObject:
   m_ObjectHideFlags: 0
@@ -856,10 +857,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   game_time: {fileID: 1383475726}
-  assets: {fileID: 1407878489}
   entities: {fileID: 1980784024821874552}
   pathfinding: {fileID: 1383475725}
---- !u!1 &1407878487
+--- !u!1 &1455922069
 GameObject:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -867,62 +867,53 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
   serializedVersion: 6
   m_Component:
-  - component: {fileID: 1407878488}
-  - component: {fileID: 1407878489}
+  - component: {fileID: 1455922070}
+  - component: {fileID: 1455922071}
   m_Layer: 0
-  m_Name: Assets
+  m_Name: AssetManager
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!4 &1407878488
+--- !u!4 &1455922070
 Transform:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1407878487}
+  m_GameObject: {fileID: 1455922069}
   serializedVersion: 2
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
-  m_Children:
-  - {fileID: 451437869}
-  m_Father: {fileID: 0}
+  m_Children: []
+  m_Father: {fileID: 1370854318}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &1407878489
+--- !u!114 &1455922071
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1407878487}
+  m_GameObject: {fileID: 1455922069}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: d20668030d8f8ce4ea901689bca69df0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  vehicles_loc: {fileID: 451437869}
-  car_material: {fileID: 2100000, guid: b74e0f88cab02f04e9cb5d105b94658d, type: 2}
-  bus_material: {fileID: 2100000, guid: ed4062c747e49d9499a2a8e2fda61697, type: 2}
-  vehicles:
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
+  tmp_loc: {fileID: 1455922070}
   import_setting:
     nodeNameMethod: 0
     animationMethod: 1
-    generateMipMaps: 1
+    generateMipMaps: 0
     texturesReadable: 0
-    defaultMinFilterMode: 9987
+    defaultMinFilterMode: 9729
     defaultMagFilterMode: 9729
-    anisotropicFilterLevel: 16
+    anisotropicFilterLevel: 1
+  car_material: {fileID: 2100000, guid: b74e0f88cab02f04e9cb5d105b94658d, type: 2}
+  bus_material: {fileID: 2100000, guid: ed4062c747e49d9499a2a8e2fda61697, type: 2}
 --- !u!1 &1889587477
 GameObject:
   m_ObjectHideFlags: 0
@@ -1100,8 +1091,15 @@ MonoBehaviour:
   medium_road_asset: {fileID: 7897555432898702516, guid: 48416bdb03be60747be080388a96ea42, type: 3}
   small_road_asset: {fileID: 7897555432898702516, guid: bbc68e1245b03d04dbddda08e2403253, type: 3}
   building_assets:
-  - {fileID: 1988152778962936269, guid: 7e8b98d99f284ba4fad535236c6de7b8, type: 3}
-  - {fileID: 27098536979063040, guid: 461b19dfe27dbfe4f9419706ed2a0c36, type: 3}
+  - {fileID: 6762350242931797868, guid: 7e8b98d99f284ba4fad535236c6de7b8, type: 3}
+  - {fileID: 6096196594580488119, guid: 461b19dfe27dbfe4f9419706ed2a0c36, type: 3}
+  vehicle_assets:
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
 --- !u!1 &2530641291246559244
 GameObject:
   m_ObjectHideFlags: 0
@@ -1285,6 +1283,6 @@ GameObject:
 SceneRoots:
   m_ObjectHideFlags: 0
   m_Roots:
+  - {fileID: 1370854318}
   - {fileID: 1889587478}
-  - {fileID: 1407878488}
   - {fileID: 1383475723}

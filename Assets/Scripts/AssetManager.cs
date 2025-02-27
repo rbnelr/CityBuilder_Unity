@@ -9,10 +9,19 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Unity.Mathematics;
 
+[ExecuteInEditMode]
 public class AssetManager : MonoBehaviour {
-	public Transform vehicles_loc;
 
-	public string content_dir => Directory.GetCurrentDirectory() + "/Content"; // TODO: Fix for real application
+	public static AssetManager inst;
+	private void OnEnable () {
+		inst = this;
+	}
+
+	public string content_dir => Path.GetFullPath("Assets/Assets/Import/");
+	public Transform tmp_loc => transform;
+
+	
+	public ImportSettings import_setting = new ImportSettings();
 
 	public Material car_material;
 	public Material bus_material;
@@ -20,38 +29,31 @@ public class AssetManager : MonoBehaviour {
 	class AssetsDefinition {
 		public List<VehicleAsset> vehicles;
 	}
-
+	
 	[NaughtyAttributes.Button]
-	public void ReloadAll () {
+	public void Reimport_All () {
 		try {
-			Util.DestroyChildren(vehicles_loc.transform);
+			//Util.DestroyChildren(vehicles_loc.transform);
 			
 			var settings = new JsonSerializerSettings();
 			settings.Converters.Add(new VehicleAssetSerializer());
 
-			string text = File.ReadAllText(content_dir + "/assets.json");
+			string text = File.ReadAllText(Path.Combine(content_dir, "assets.json"));
 			var def = JsonConvert.DeserializeObject<AssetsDefinition>(text, settings);
 
-			vehicles = def.vehicles;
+			//vehicles = def.vehicles;
 
-			float3 pos = 0;
-			foreach (var vehicle in vehicles) {
-				vehicle.transform.position = pos;
-				pos.x += 10;
-			}
+			//float3 pos = 0;
+			//foreach (var vehicle in vehicles) {
+			//	vehicle.transform.position = pos;
+			//	pos.x += 10;
+			//}
 
 			Debug.Log($"All Assets reloaded.");
 		}
 		catch (Exception e) {
 			Debug.LogError($"Failed to load Assets: {e.Message}!");
 		}
-	}
-
-	// List of loaded assets
-	public List<VehicleAsset> vehicles;
-
-	void OnEnable () {
-		ReloadAll();
 	}
 
 	// Currently:
@@ -74,8 +76,6 @@ public class AssetManager : MonoBehaviour {
 			}
 		}
 	}
-	
-	public ImportSettings import_setting = new ImportSettings();
 
 	public async Task<GameObject> load_gltf_model (string name, string filepath, Transform parent) {
 		try {
@@ -112,20 +112,6 @@ public class VehicleAssetSerializer : JsonConverter {
 	}
 
 	public override void WriteJson (JsonWriter writer, object value, JsonSerializer serializer) {
-		// Load JSON object into a JObject for structured parsing
-		//var vehicle = (Vehicle)value;
-		//
-		//// Create a JObject to represent the JSON structure
-		//var jsonObject = new JObject
-		//{
-		//    ["vehicle_id"] = vehicle.Id,
-		//    ["vehicle_model"] = vehicle.Model,
-		//    ["vehicle_speed"] = vehicle.Speed
-		//};
-		//
-		//// Write the JObject to the JSON writer
-		//jsonObject.WriteTo(writer);
-
 		throw new NotImplementedException();
 	}
 
@@ -135,25 +121,25 @@ public class VehicleAssetSerializer : JsonConverter {
 			var j = JObject.Load(reader);
 		
 			// create empty GO inside g.assets.vehicles_loc and attach VehicleAsset script
-			asset = (new GameObject()).AddComponent<VehicleAsset>();
-			asset.transform.SetParent(g.assets.vehicles_loc);
+			asset = new GameObject().AddComponent<VehicleAsset>();
+			asset.transform.SetParent(AssetManager.inst.tmp_loc);
 
 			// deserialize it from json
 			//serializer.Populate(j.CreateReader(), asset); // works but will allow users to directly write unity properties
 			asset.name = j.Value<string>("name");
 			j.TryGet("max_speed", ref asset.max_speed);
 
-			j.TryGet("model_file", ref asset.model_file);
-			j.TryGet("texture_files", ref asset.texture_files);
+			string model_file = j.TryGet<string>("model_file");
+			string texture_files = j.TryGet<string>("texture_files");
 
-			string path = Path.Combine(g.assets.content_dir, asset.model_file);
-			var task = g.assets.load_gltf_model(asset.name, path, asset.transform);
+			string path = Path.Combine(AssetManager.inst.content_dir, model_file);
+			var task = AssetManager.inst.load_gltf_model(asset.name, path, asset.transform);
 
 			task.Wait(1000);
 			//task.GetAwaiter().OnCompleted(() => {
 				var obj = task.Result;
 				var renderer = obj.GetComponentInChildren<SkinnedMeshRenderer>();
-				renderer.sharedMaterial = asset.name == "bus" ? g.assets.bus_material : g.assets.car_material; // TODO: Actually add runtime texture loading!
+				renderer.sharedMaterial = asset.name == "bus" ? AssetManager.inst.bus_material : AssetManager.inst.car_material; // TODO: Actually add runtime texture loading!
 				renderer.updateWhenOffscreen = false; // Not really needed in for vehicles
 
 				asset.prefab = obj;
