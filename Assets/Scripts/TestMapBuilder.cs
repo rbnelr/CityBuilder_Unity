@@ -5,6 +5,7 @@ using NaughtyAttributes;
 using static Unity.Mathematics.math;
 using Random = Unity.Mathematics.Random;
 
+[DefaultExecutionOrder(-500)]
 public class TestMapBuilder : MonoBehaviour {
 
 	[Range(1, 500)]
@@ -163,6 +164,8 @@ public class TestMapBuilder : MonoBehaviour {
 		adjust_vehicle_count();
 	}
 	void adjust_vehicle_count () {
+		if (g.entities.buildings_go.transform.childCount <= 0) return;
+
 		while (g.entities.vehicles_go.transform.childCount < num_vehicles) {
 			spawn_vehicle();
 		}

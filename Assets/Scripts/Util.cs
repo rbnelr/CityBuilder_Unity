@@ -11,6 +11,11 @@ using Newtonsoft.Json.Linq;
 #nullable enable
 
 public static class Util {
+	public static void HardClear<T> (this List<T> list) {
+		list.Clear();
+		list.Capacity = 0;
+	}
+
 	public static bool Chance (this ref Random rand, float probabilty) {
 		return rand.NextFloat(0, 1) < probabilty;
 	}

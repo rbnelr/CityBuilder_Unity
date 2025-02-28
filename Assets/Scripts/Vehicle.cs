@@ -4,11 +4,10 @@ using UnityEngine;
 using Unity.Mathematics;
 using static Unity.Mathematics.math;
 using Random = Unity.Mathematics.Random;
-using System;
 
 public class Vehicle : MonoBehaviour {
 
-	public VehicleAsset asset { get; private set; }
+	public VehicleAsset asset;
 
 	public Building cur_building = null;
 	public Building target = null;
@@ -19,9 +18,8 @@ public class Vehicle : MonoBehaviour {
 
 	public static int _counter = 0;
 	public static Vehicle create (VehicleAsset asset) {
-		var vehicle = Instantiate(asset.prefab, g.entities.vehicles_go.transform).GetComponent<Vehicle>();
+		var vehicle = Instantiate(asset.instance_prefab, g.entities.vehicles_go.transform).GetComponent<Vehicle>();
 		vehicle.name = $"Vehicle #{_counter++}";
-		vehicle.asset = asset;
 		return vehicle;
 	}
 
@@ -210,16 +208,4 @@ public class Vehicle : MonoBehaviour {
 			}
 		}
 	}
-}
-
-[Newtonsoft.Json.JsonConverter(typeof(VehicleAssetSerializer))]
-public class VehicleAsset : MonoBehaviour {
-	public float max_speed = 50 / 3.6f;
-	public float spawn_weight = 1;
-
-	public string model_file;
-	public string texture_files;
-
-	[NonSerialized]
-	public GameObject prefab;
 }

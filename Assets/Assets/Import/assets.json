@@ -49,5 +49,19 @@
 			"max_speed": 10,
 			"spawn_weight": 0.5
 		}
+	],
+	"buildings": [
+		{
+			"name": "house",
+			"model_file": "house.glb",
+			"texture_files": "Textures/house%.png",
+			"spawn_weight": 1.0
+		},
+		{
+			"name": "urban_mixed_use",
+			"model_file": "urban_mixed_use.glb",
+			"texture_files": "Textures/house%.png",
+			"spawn_weight": 1.0
+		}
 	]
 }

@@ -3,7 +3,7 @@ using UnityEngine;
 using UnityEngine.UIElements;
 using static UnityEngine.Rendering.DebugUI.MessageBox;
 
-[DefaultExecutionOrder(-1000)]
+[DefaultExecutionOrder(-900)]
 public class DebugHUD : MonoBehaviour {
 	static DebugHUD inst;
 	void OnEnable () {
