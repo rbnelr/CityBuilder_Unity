@@ -7,6 +7,7 @@ using UnityEditor;
 // -accessing each system now can be more concise
 
 [ExecuteAlways]
+[DefaultExecutionOrder(-1000)]
 public class SingletonsManager : MonoBehaviour {
 
 	// config via inspector

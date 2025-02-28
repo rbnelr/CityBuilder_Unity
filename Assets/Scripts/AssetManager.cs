@@ -19,7 +19,7 @@ using System.Linq;
 // The biggest thing I will need to add is to cache meshes and textures of imported assets as binary/dds files so we avoid slow loading times!
 [ExecuteInEditMode]
 public class AssetManager : MonoBehaviour {
-
+#if UNITY_EDITOR
 	public static AssetManager inst;
 	private void OnEnable () {
 		inst = this;
@@ -260,4 +260,5 @@ public class AssetManager : MonoBehaviour {
 
 		return prefab;
 	}
+#endif
 }

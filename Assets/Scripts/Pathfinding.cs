@@ -185,7 +185,7 @@ public class Pathfinding : MonoBehaviour {
 		return path.ToArray();
 	}
 	public Road[] pathfind (Road start, Road dest) {
-		if (pathing_count > 50)
+		if (pathing_count >= 50)
 			return null; // HACK: artifically fail pathfinding if too many pathfinds per frame, to avoid freezing the unity editor
 		
 		pathing_count++;

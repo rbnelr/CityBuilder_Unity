@@ -8,13 +8,16 @@ using Random = Unity.Mathematics.Random;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
+#if UNITY_EDITOR
 [JsonConverter(typeof(BuildingAssetSerializer))]
+#endif
 public class BuildingAsset : MonoBehaviour {
 	public float spawn_weight = 1;
 
 	public GameObject instance_prefab;
 }
 
+#if UNITY_EDITOR
 public class BuildingAssetSerializer : JsonConverter {
 	public override bool CanConvert (Type objectType) {
 		return objectType == typeof(BuildingAsset);
@@ -55,3 +58,4 @@ public class BuildingAssetSerializer : JsonConverter {
 		}
 	}
 }
+#endif

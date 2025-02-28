@@ -8,14 +8,18 @@ using Random = Unity.Mathematics.Random;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
+#if UNITY_EDITOR
 [JsonConverter(typeof(VehicleAssetSerializer))]
+#endif
 public class VehicleAsset : MonoBehaviour {
 	public float max_speed = 50 / 3.6f;
 	public float spawn_weight = 1;
+	public ColorSet color_set;
 
 	public GameObject instance_prefab;
 }
 
+#if UNITY_EDITOR
 public class VehicleAssetSerializer : JsonConverter {
 	public override bool CanConvert (Type objectType) {
 		return objectType == typeof(VehicleAsset);
@@ -61,3 +65,4 @@ public class VehicleAssetSerializer : JsonConverter {
 		}
 	}
 }
+#endif

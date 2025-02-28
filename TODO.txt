@@ -1,0 +1,7 @@
+-Add animation for gameobject vehicles
+-add toolshelf ui classes
+-render roads?
+-add basic road building!
+-made vehicles brake for vehicles on segments
+-maybe try to port intersection code (if performance still acceptable)
+ -port vehicles (and roads?) to ECS

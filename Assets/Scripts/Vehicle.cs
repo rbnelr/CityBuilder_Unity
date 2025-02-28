@@ -8,6 +8,7 @@ using Random = Unity.Mathematics.Random;
 public class Vehicle : MonoBehaviour {
 
 	public VehicleAsset asset;
+	public Color color = Color.white;
 
 	public Building cur_building = null;
 	public Building target = null;
@@ -20,6 +21,11 @@ public class Vehicle : MonoBehaviour {
 	public static Vehicle create (VehicleAsset asset) {
 		var vehicle = Instantiate(asset.instance_prefab, g.entities.vehicles_go.transform).GetComponent<Vehicle>();
 		vehicle.name = $"Vehicle #{_counter++}";
+
+		vehicle.color = rand.Weighted(asset.color_set.colors, x => x.weight).color;
+
+		vehicle.GetComponentInChildren<SkinnedMeshRenderer>().material.SetColor("_Tint", vehicle.color);
+
 		return vehicle;
 	}
 

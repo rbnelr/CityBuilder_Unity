@@ -113,6 +113,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   asset: {fileID: 2459586451222360474}
+  color: {r: 0, g: 0, b: 0, a: 0}
   cur_building: {fileID: 0}
   target: {fileID: 0}
 --- !u!1 &3678462755834428916
@@ -317,6 +318,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   max_speed: 10
   spawn_weight: 1.5
+  color_set: {fileID: 11400000, guid: 46264ca024b493742a10dc15359c0073, type: 2}
   instance_prefab: {fileID: 3561898588501293910}
 --- !u!1 &8462654452503563151
 GameObject:

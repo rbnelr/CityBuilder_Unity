@@ -1226,9 +1226,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 92edcd6035b560945894e743bf5c2839, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  grid: 10
+  grid: 20
   spacing: 60
-  num_vehicles: 200
+  num_vehicles: 4000
   intersection_radius: 0
   connection_chance: 0.7
 --- !u!4 &7558016161617991895

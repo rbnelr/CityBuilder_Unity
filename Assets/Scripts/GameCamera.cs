@@ -217,6 +217,13 @@ public class GameCamera : MonoBehaviour {
 	bool dragging = false;
 	float3 dragging_grab_point = 0;
 
+
+	// TODO: FIXTHIS: while holding, the screen jitters subtly (at least in build)
+	// precision issue?
+
+	// Solution: ditch this unstable and unintuitive method and just compute 'screen with based on orbit distance and fov
+	//  -> orbit_pos.xz += clac_width_for_fov_and_zoom() [approx visible circle at orbit center] * drag_delta (px) / screen_width (px)
+	// could also try to see if we can freeze cursor here just like we wanted for camera look
 	void move_camera_with_cursor () {
 		if (Mouse.current.leftButton.isPressed) {
 			var cursor_pos = Mouse.current.position.ReadValue();
