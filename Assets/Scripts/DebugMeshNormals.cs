@@ -64,8 +64,8 @@ public class DebugMeshNormals : MonoBehaviour {
 			Gizmos.color = Color.blue;
 			Gizmos.DrawLine(v.position, v.position + v.normal * line_length);
 
-			Gizmos.color = Color.magenta;
-			Gizmos.DrawLine(v.position, v.position + v.tangent * line_length);
+			//Gizmos.color = Color.magenta;
+			//Gizmos.DrawLine(v.position, v.position + v.tangent * line_length);
 		}
 
 		Gizmos.matrix = Matrix4x4.identity;

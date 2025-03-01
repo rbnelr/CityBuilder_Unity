@@ -1,15 +1,32 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
+using Unity.Mathematics;
+using static Unity.Mathematics.math;
 
 [DefaultExecutionOrder(-200)]
 public class Controls : MonoBehaviour {
+	public const int INTERACTABLE_LAYER = 1 << 6;
+	public const int GROUND_LAYER = 1 << 7;
+
 	public GameCamera main_camera;
 	public Flycam debug_camera;
 
 	public bool view_debug_camera = false;
 
+	public Camera active_camera => view_debug_camera ? debug_camera.GetComponent<Camera>() : main_camera.GetComponent<Camera>();
 
-	private void Update () {
+	public CursorDragging cursor_dragging;
+
+	public static Ray? cursor_ray () {
+		if (!Mouse.current.enabled)
+			return null;
+		// Can this ever be invalid? what if cursor out of window?
+		var cursor_pos = Mouse.current.position.ReadValue();
+		var ray = Camera.main.ScreenPointToRay(float3(cursor_pos, 0));
+		return ray;
+	}
+
+	void camera_controls () {
 		if (Keyboard.current.pKey.wasPressedThisFrame) {
 			view_debug_camera = !view_debug_camera;
 		}
@@ -29,4 +46,10 @@ public class Controls : MonoBehaviour {
 			}
 		}
 	}
+
+	private void Update () {
+		camera_controls();
+		cursor_dragging.Update();
+	}
 }
+

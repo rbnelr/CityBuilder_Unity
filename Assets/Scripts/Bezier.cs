@@ -69,4 +69,68 @@ public struct Bezier {
 
 		return len;
 	}
+
+	// approximate bounds of bezier-based road with x0,x1 being left-right extents following curve
+	// and h0,h1 being bottom-top extents (always straight up/down)
+	public Bounds approx_road_bounds (float x0, float x1, float h0, float h1, int res=10) {
+		float3 lo = float.PositiveInfinity;
+		float3 hi = float.NegativeInfinity;
+		
+		for (int i=0; i<res+1; ++i) {
+			float t = (float)i * (1.0f / res);
+
+			var bez_res = eval(t);
+			var mat = rotate_to_direction(bez_res.vel);
+			var p0 = bez_res.pos + mul(mat, float3(x0, 0,0));
+			var p1 = bez_res.pos + mul(mat, float3(x1, 0,0));
+
+			lo = min(lo, min(p0, p1));
+			hi = max(hi, max(p0, p1));
+		}
+
+		lo.y += h0;
+		hi.y += h1;
+
+		var bounds = new Bounds();
+		bounds.SetMinMax(lo, hi);
+		return bounds;
+	}
+	
+	static float3x3 rotate_to_direction (float3 forw) {
+		forw = normalize(forw);
+		float3 up = float3(0,1,0);
+		float3 right = cross(up, forw);
+	
+		up = normalize(cross(forw, right));
+		right = normalize(right);
+	
+		// unlike hlsl float3x3 takes columns already!
+		return float3x3(right, up, forw);
+	}
+	// TODO: seperate t?
+	public void curve_mesh (float3 pos_obj, float3 norm_obj, float3 tang_obj,
+			out float3 pos_out, out float3 norm_out, out float3 tang_out) {
+		// NOTE: distorting/extruding the mesh along a bezier like this results in technically not-correct normals
+		// while the normals are curved correctly, the mesh is streched/squashed along the length of the bezier
+		// so any normals pointing forwards or backwards relative to the bezier, will be wrong, just like a sphere scaled on one axis will have wrong normals
+		// it might be possible to fix this based on an estimate of streching along this axis?
+	
+		// fix X and Z being flipped when importing mesh here
+		pos_obj  *= float3(-1,1,-1 / 20.0f); // mesh currently 20 units long
+		norm_obj *= float3(-1,1,-1);
+		tang_obj *= float3(-1,1,-1);
+		float t = pos_obj.z;
+		
+		var res = eval(t);
+	
+		float3x3 rotate_to_bezier = rotate_to_direction(res.vel);
+	
+		pos_out = res.pos + mul(rotate_to_bezier, float3(pos_obj.xy,0));
+		norm_out = mul(rotate_to_bezier, norm_obj);
+		tang_out = mul(rotate_to_bezier, tang_obj);
+	}
+	public float3 follow_curve (float t, float3 pos) {
+		var res = eval(t);
+		return res.pos + mul(rotate_to_direction(res.vel), pos);
+	}
 }

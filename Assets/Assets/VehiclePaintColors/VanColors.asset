@@ -10,7 +10,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 8a25660a44c0e1c4f895a7897b6b04b1, type: 3}
-  m_Name: VanColorSet
+  m_Name: VanColors
   m_EditorClassIdentifier: 
   colors:
   - color: {r: 1, g: 1, b: 1, a: 1}

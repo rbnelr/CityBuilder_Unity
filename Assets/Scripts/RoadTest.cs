@@ -5,7 +5,6 @@ using Unity.Mathematics;
 using static Unity.Mathematics.math;
 using UnityEngine.InputSystem;
 
-[ExecuteAlways]
 public class RoadTest : MonoBehaviour {
 
 	public GameObject obj_a;
@@ -13,76 +12,78 @@ public class RoadTest : MonoBehaviour {
 	public GameObject obj_c;
 	public GameObject obj_d;
 
+	public float width = 9;
+
+	float road_center_length;
+
 	Bezier get_bez () => new Bezier(
 		obj_a.transform.position, obj_b.transform.position,
 		obj_c.transform.position, obj_d.transform.position);
 
-	Material mat;
-	void Start () {
-		mat = this.GetComponent<MeshRenderer>().sharedMaterial;
+	// TODO: goes into RoadAsset
+	[System.Serializable]
+	public struct SubmeshMaterial {
+		public Material mat;
+		public float2 texture_scale;
+	};
+	public SubmeshMaterial[] materials;
 
-		var b = this.GetComponent<MeshRenderer>().bounds;
-		b.min = float3(-10000);
-		b.max = float3(+10000);
-		this.GetComponent<MeshRenderer>().bounds = b;
-	}
 	void Update () {
 		var bez = get_bez();
+
+		road_center_length = bez.approx_len();
 		
-		mat.SetVector("_BezierA", transform.InverseTransformPoint(bez.a));
-		mat.SetVector("_BezierB", transform.InverseTransformPoint(bez.b));
-		mat.SetVector("_BezierC", transform.InverseTransformPoint(bez.c));
-		mat.SetVector("_BezierD", transform.InverseTransformPoint(bez.d));
+		foreach (var mat in materials) {
+			mat.mat.SetVector("_BezierA", (Vector3)bez.a);
+			mat.mat.SetVector("_BezierB", (Vector3)bez.b);
+			mat.mat.SetVector("_BezierC", (Vector3)bez.c);
+			mat.mat.SetVector("_BezierD", (Vector3)bez.d);
+
+			bool worldspace = mat.mat.GetInt("_WorldspaceTextures") != 0;
+
+			float2 scale = mat.texture_scale;
+			if (!worldspace)
+				scale.x /= road_center_length;
+			mat.mat.SetVector("_TextureScale", (Vector2)scale);
+		}
+		
+		GetComponent<MeshRenderer>().sharedMaterials = materials.Select(x => x.mat).ToArray();
+
+		refresh_bounds();
 	}
 
-	void OnDrawGizmos () {
+	void refresh_bounds () {
+		var bounds = get_bez().approx_road_bounds(-width/2, +width/2, -2, +5); // calculate xz bounds based on width
+		bounds.Expand(float3(1,0,1)); // extend xz by a little to catch mesh overshoot
+		GetComponent<MeshRenderer>().bounds = bounds;
+
+		var coll = GetComponent<BoxCollider>();
+		coll.center = bounds.center;
+		coll.size   = bounds.size;
+	}
+
+	void OnMouseOver () {
+
+	}
+
+	void OnDrawGizmosSelected () {
 		Gizmos.color = Color.red;
 		get_bez().debugdraw(20);
+
+		//var bounds = GetComponent<MeshRenderer>().bounds;
+		//Gizmos.color = Color.red;
+		//Gizmos.DrawWireCube(bounds.center, bounds.size);
 		
-		DebugNormals();
+		//DebugNormals();
 	}
 	
 	void DebugNormals () {
-		
-		float3x3 TBN_from_forward (float3 forw) {
-			forw = normalize(forw);
-			float3 up = float3(0,1,0);
-			float3 right = cross(up, forw);
-	
-			up = normalize(cross(forw, right));
-			right = normalize(right);
-	
-			// unlike hlsl float3x3 takes columns already!
-			return float3x3(right, up, forw);
-		}
-
-		void curve_mesh_float (float3 a, float3 b, float3 c, float3 d,
-				float3 pos_obj, float3 norm_obj, float3 tang_obj,
-				out float3 pos_out, out float3 norm_out, out float3 tang_out) {
-			
-			float x = -pos_obj.x;
-			float y = pos_obj.y;
-			float t = -pos_obj.z / 20.0f;
-	
-			var res = new Bezier(a,b,c,d).eval(t);
-	
-			float3x3 bez2world = TBN_from_forward(res.vel);
-	
-			pos_out = res.pos + mul(bez2world, float3(x,y,0));
-			norm_out = mul(bez2world, norm_obj * float3(-1,1,-1));
-			tang_out = mul(bez2world, tang_obj * float3(-1,1,-1));
-		}
-		
 		var bez = get_bez();
-		var a = transform.InverseTransformPoint(bez.a);
-		var b = transform.InverseTransformPoint(bez.b);
-		var c = transform.InverseTransformPoint(bez.c);
-		var d = transform.InverseTransformPoint(bez.d);
 
 		DebugMeshNormals.DrawOnGizmos(this.GetComponent<MeshFilter>().sharedMesh, transform.localToWorldMatrix, 0.25f,
 			v => {
 				var ret = new DebugMeshNormals.Vertex();
-				curve_mesh_float(a, b, c, d, v.position, v.normal, v.tangent,
+				bez.curve_mesh(v.position, v.normal, v.tangent,
 					out ret.position, out ret.normal, out ret.tangent);
 				return ret;
 			});

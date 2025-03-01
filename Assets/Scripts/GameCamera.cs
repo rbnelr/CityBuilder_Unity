@@ -217,7 +217,6 @@ public class GameCamera : MonoBehaviour {
 	bool dragging = false;
 	float3 dragging_grab_point = 0;
 
-
 	// TODO: FIXTHIS: while holding, the screen jitters subtly (at least in build)
 	// precision issue?
 
@@ -291,7 +290,7 @@ public class GameCamera : MonoBehaviour {
 		// needed for move_camera_with_cursor() to work correctly (otherwise it wobbled vertically when zooming)
 		camera_position_from_orbit_pos();
 
-		move_camera_with_cursor();
+		//move_camera_with_cursor(); // TODO: integrate with other draggable objects? or switch button?
 		
 		// compute final camera position
 		camera_position_from_orbit_pos();

@@ -4,6 +4,7 @@
 			"name": "small",
 			"model_file": "small.glb",
 			"texture_files": "Textures/car%.png",
+			"color_set": "PersonalVehicleColors",
 			"max_speed": 10,
 			"spawn_weight": 5.0
 		},
@@ -11,6 +12,7 @@
 			"name": "smart",
 			"model_file": "smart.glb",
 			"texture_files": "Textures/car%.png",
+			"color_set": "PersonalVehicleColors",
 			"max_speed": 10,
 			"spawn_weight": 2.0
 		},
@@ -18,6 +20,7 @@
 			"name": "limo",
 			"model_file": "limo.glb",
 			"texture_files": "Textures/car%.png",
+			"color_set": "PersonalVehicleColors",
 			"max_speed": 10,
 			"spawn_weight": 3.0
 		},
@@ -25,6 +28,7 @@
 			"name": "SUV",
 			"model_file": "SUV.glb",
 			"texture_files": "Textures/car%.png",
+			"color_set": "PersonalVehicleColors",
 			"max_speed": 10,
 			"spawn_weight": 2.0
 		},
@@ -32,6 +36,7 @@
 			"name": "combi",
 			"model_file": "combi.glb",
 			"texture_files": "Textures/car%.png",
+			"color_set": "PersonalVehicleColors",
 			"max_speed": 10,
 			"spawn_weight": 2.0
 		},
@@ -39,6 +44,7 @@
 			"name": "van",
 			"model_file": "van.glb",
 			"texture_files": "Textures/car%.png",
+			"color_set": "VanColors",
 			"max_speed": 10,
 			"spawn_weight": 1.5
 		},
@@ -46,6 +52,7 @@
 			"name": "bus",
 			"model_file": "bus.glb",
 			"texture_files": "Textures/bus%.png",
+			"color_set": "ColorfulColors",
 			"max_speed": 10,
 			"spawn_weight": 0.5
 		}

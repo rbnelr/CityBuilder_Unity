@@ -7,6 +7,7 @@ using static Unity.Mathematics.math;
 using Random = Unity.Mathematics.Random;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using UnityEditor;
 
 #if UNITY_EDITOR
 [JsonConverter(typeof(VehicleAssetSerializer))]
@@ -46,6 +47,12 @@ public class VehicleAssetSerializer : JsonConverter {
 
 			string model_file = j.Value<string>("model_file");
 			string texture_files = j.Value<string>("texture_files");
+			var color_set = j.TryGet<string>("color_set");
+
+			// Resources.Load never works, not even in run mode???
+			asset.color_set = color_set != null ?
+				AssetDatabase.LoadAssetAtPath<ColorSet>($"Assets/Assets/VehiclePaintColors/{color_set}.asset")
+				: null;
 
 			Debug.Log($"Asset definition loaded for {asset.name}");
 

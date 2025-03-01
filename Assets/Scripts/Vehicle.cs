@@ -22,7 +22,8 @@ public class Vehicle : MonoBehaviour {
 		var vehicle = Instantiate(asset.instance_prefab, g.entities.vehicles_go.transform).GetComponent<Vehicle>();
 		vehicle.name = $"Vehicle #{_counter++}";
 
-		vehicle.color = rand.Weighted(asset.color_set.colors, x => x.weight).color;
+		if (asset.color_set != null)
+			vehicle.color = rand.Weighted(asset.color_set.colors, x => x.weight).color;
 
 		vehicle.GetComponentInChildren<SkinnedMeshRenderer>().material.SetColor("_Tint", vehicle.color);
 
