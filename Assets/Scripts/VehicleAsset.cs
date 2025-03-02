@@ -51,7 +51,7 @@ public class VehicleAssetSerializer : JsonConverter {
 
 			// Resources.Load never works, not even in run mode???
 			asset.color_set = color_set != null ?
-				AssetDatabase.LoadAssetAtPath<ColorSet>($"Assets/Assets/VehiclePaintColors/{color_set}.asset")
+				AssetDatabase.LoadAssetAtPath<ColorSet>($"Assets/VehiclePaintColors/{color_set}.asset")
 				: null;
 
 			Debug.Log($"Asset definition loaded for {asset.name}");

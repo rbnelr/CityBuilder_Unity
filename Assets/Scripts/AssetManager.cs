@@ -25,13 +25,13 @@ public class AssetManager : MonoBehaviour {
 		inst = this;
 	}
 
-	public string prefabs_dir => "Assets/Assets/LoadedPrefabs";
+	public string prefabs_dir => "Assets/LoadedPrefabs";
 	public string prefab_vehicles_dir => prefabs_dir + "/Vehicles";
 	public string prefab_buildings_dir => prefabs_dir + "/Buildings";
 
 	public Transform tmp_loc => transform;
 
-	public string content_dir = "Assets/Assets/Import";
+	public string content_dir = "Assets/Import";
 
 	public ImportSettings import_setting = new ImportSettings();
 
@@ -192,10 +192,10 @@ public class AssetManager : MonoBehaviour {
 	public Material load_vehicle_material (string texture_files) {
 		var mat = new Material(Shader.Find("Shader Graphs/VehicleLit"));
 
-		var albedo = AssetDatabase.LoadAssetAtPath<Texture2D>("Assets/Assets/"+texture_files.Replace("%", ""));
+		var albedo = AssetDatabase.LoadAssetAtPath<Texture2D>("Assets/"+texture_files.Replace("%", ""));
 		Texture2D norm = null;
-		var pbr    = AssetDatabase.LoadAssetAtPath<Texture2D>("Assets/Assets/"+texture_files.Replace("%", ".pbr"));
-		var glow   = AssetDatabase.LoadAssetAtPath<Texture2D>("Assets/Assets/"+texture_files.Replace("%", ".glow"));
+		var pbr    = AssetDatabase.LoadAssetAtPath<Texture2D>("Assets/"+texture_files.Replace("%", ".pbr"));
+		var glow   = AssetDatabase.LoadAssetAtPath<Texture2D>("Assets/"+texture_files.Replace("%", ".glow"));
 
 		mat.SetTexture("_Albedo", albedo);
 		mat.SetTexture("_Normal", norm);

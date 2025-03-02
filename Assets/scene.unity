@@ -1519,7 +1519,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d20668030d8f8ce4ea901689bca69df0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  content_dir: Assets/Assets/Import
+  content_dir: Assets/Import
   import_setting:
     nodeNameMethod: 0
     animationMethod: 1
@@ -1979,16 +1979,16 @@ MonoBehaviour:
   medium_road_asset: {fileID: 7897555432898702516, guid: 48416bdb03be60747be080388a96ea42, type: 3}
   small_road_asset: {fileID: 7897555432898702516, guid: bbc68e1245b03d04dbddda08e2403253, type: 3}
   building_assets:
-  - {fileID: 1438325575991862511, guid: 8288f78f94b3fd74daecde2c071c0d4a, type: 3}
-  - {fileID: 6755630431512485788, guid: d4a002a6f48609d4b851f23da0b48850, type: 3}
+  - {fileID: 5848870142536072737, guid: 8288f78f94b3fd74daecde2c071c0d4a, type: 3}
+  - {fileID: 2831689475527563889, guid: d4a002a6f48609d4b851f23da0b48850, type: 3}
   vehicle_assets:
-  - {fileID: 2596052626477277292, guid: 457db3c7d5c6fce42905cbe2f6f0a286, type: 3}
-  - {fileID: 6534635710204790044, guid: d3a25ed2e193b9046a75dcf8880fb2a2, type: 3}
-  - {fileID: 4712084821608341909, guid: 708064df649b4464683bc94cc55e3466, type: 3}
-  - {fileID: 8368223273253336103, guid: 0f7f47cd962134740a5e65c6ddd3c9fe, type: 3}
-  - {fileID: 8708649627567538125, guid: 7cfd87d28569dda478f92513f347ef72, type: 3}
-  - {fileID: 8641398527700710930, guid: d079734331866b9408c1a5015d406e5b, type: 3}
-  - {fileID: 8393027579911766306, guid: 6cab34b7c7d905444bf16adc3ceb5197, type: 3}
+  - {fileID: 2702237863125398684, guid: 457db3c7d5c6fce42905cbe2f6f0a286, type: 3}
+  - {fileID: 1167833834842537789, guid: d3a25ed2e193b9046a75dcf8880fb2a2, type: 3}
+  - {fileID: 7280782979804296248, guid: 708064df649b4464683bc94cc55e3466, type: 3}
+  - {fileID: 8025605068364753956, guid: 0f7f47cd962134740a5e65c6ddd3c9fe, type: 3}
+  - {fileID: 2674325287073419150, guid: 7cfd87d28569dda478f92513f347ef72, type: 3}
+  - {fileID: 3942577063061724237, guid: d079734331866b9408c1a5015d406e5b, type: 3}
+  - {fileID: 6059436048593692051, guid: 6cab34b7c7d905444bf16adc3ceb5197, type: 3}
 --- !u!23 &2363219608583104707
 MeshRenderer:
   m_ObjectHideFlags: 0

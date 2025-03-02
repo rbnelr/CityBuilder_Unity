@@ -7,7 +7,7 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: Road_Asphalt
+  m_Name: Road_Curb
   m_Shader: {fileID: -6465566751694194690, guid: 04c5812ffe504a246b5f92c3ad44e6a0, type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
@@ -25,7 +25,7 @@ Material:
     serializedVersion: 3
     m_TexEnvs:
     - _Albedo:
-        m_Texture: {fileID: 2800000, guid: 028ad5a95be70c8478d7e52ddf2c1f0e, type: 3}
+        m_Texture: {fileID: 2800000, guid: 8ff8fc8406bd5554da6e543d60a0ab4b, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _BaseMap:
@@ -61,7 +61,7 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _Normal:
-        m_Texture: {fileID: 2800000, guid: 53b16d5a82906ed479c707b5f47b91ba, type: 3}
+        m_Texture: {fileID: 2800000, guid: 9815b0697227e5b42a10423121c2e6db, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _OcclusionMap:
@@ -121,19 +121,19 @@ Material:
     - _SrcBlendAlpha: 1
     - _Surface: 0
     - _WorkflowMode: 1
-    - _WorldspaceTextures: 1
+    - _WorldspaceTextures: 0
     - _ZWrite: 1
     m_Colors:
     - _BaseColor: {r: 1, g: 1, b: 1, a: 1}
-    - _BezierA: {r: 0, g: 0, b: 0, a: 0}
-    - _BezierB: {r: 0, g: 0, b: 7, a: 0}
-    - _BezierC: {r: 0, g: 0, b: 13, a: 0}
-    - _BezierD: {r: 0, g: 0, b: 20, a: 0}
+    - _BezierA: {r: -5.7349296, g: 3.1366134, b: 0.50908244, a: 0}
+    - _BezierB: {r: -5.7349296, g: 3.1366134, b: 6.5790825, a: 0}
+    - _BezierC: {r: -6.91, g: 0, b: 11.63, a: 0}
+    - _BezierD: {r: -4.29, g: 0, b: 21.57, a: 0}
     - _Color: {r: 1, g: 1, b: 1, a: 1}
     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
     - _SpecColor: {r: 0.19999996, g: 0.19999996, b: 0.19999996, a: 1}
     - _TextureOffset: {r: 0, g: 0, b: 0, a: 0}
-    - _TextureScale: {r: 1, g: 1, b: 0, a: 0}
+    - _TextureScale: {r: 0.09299467, g: 1, b: 0, a: 0}
   m_BuildTextureStacks: []
   m_AllowLocking: 1
 --- !u!114 &4990352256917561232
