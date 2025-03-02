@@ -125,15 +125,15 @@ Material:
     - _ZWrite: 1
     m_Colors:
     - _BaseColor: {r: 1, g: 1, b: 1, a: 1}
-    - _BezierA: {r: -5.7349296, g: 3.1366134, b: 0.50908244, a: 0}
-    - _BezierB: {r: -5.7349296, g: 3.1366134, b: 6.5790825, a: 0}
+    - _BezierA: {r: 0, g: 0, b: 0, a: 0}
+    - _BezierB: {r: 0, g: 0, b: 6.07, a: 0}
     - _BezierC: {r: -6.91, g: 0, b: 11.63, a: 0}
     - _BezierD: {r: -4.29, g: 0, b: 21.57, a: 0}
     - _Color: {r: 1, g: 1, b: 1, a: 1}
     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
     - _SpecColor: {r: 0.19999996, g: 0.19999996, b: 0.19999996, a: 1}
     - _TextureOffset: {r: 0, g: 0, b: 0, a: 0}
-    - _TextureScale: {r: 0.034873, g: 0.75, b: 0, a: 0}
+    - _TextureScale: {r: 0.033425905, g: 0.75, b: 0, a: 0}
   m_BuildTextureStacks: []
   m_AllowLocking: 1
 --- !u!114 &4990352256917561232

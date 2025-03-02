@@ -1,0 +1,107 @@
+.Toolshelf {
+    border-top-left-radius: 3px;
+    border-top-right-radius: 3px;
+    background-color: rgba(15, 15, 15, 0.85);
+    margin-left: 0;
+    margin-bottom: -3px;
+    flex-wrap: wrap;
+    padding-bottom: 2px;
+    flex-direction: row;
+    padding-top: 4px;
+    padding-right: 2px;
+    padding-left: 2px;
+    border-right-width: 3px;
+    border-bottom-width: 3px;
+    border-left-width: 3px;
+    border-left-color: rgb(89, 88, 83);
+    border-right-color: rgb(89, 88, 83);
+    border-top-color: rgb(89, 88, 83);
+    border-bottom-color: rgb(89, 88, 83);
+    border-top-width: 3px;
+    border-bottom-right-radius: 3px;
+    border-bottom-left-radius: 3px;
+    align-items: flex-end;
+    align-self: auto;
+}
+
+.ToolButton {
+    margin-top: 1px;
+    margin-right: 3px;
+    margin-bottom: 1px;
+    margin-left: 3px;
+    border-top-left-radius: 5px;
+    border-top-right-radius: 5px;
+    border-top-width: 1px;
+    border-right-width: 4px;
+    border-bottom-width: 8px;
+    border-left-width: 4px;
+    border-bottom-right-radius: 3px;
+    border-bottom-left-radius: 3px;
+    -unity-font-definition: url("project://database/Library/unity%20default%20resources?fileID=10102&guid=0000000000000000e000000000000000&type=0#LegacyRuntime");
+    -unity-font-style: bold;
+    font-size: 16px;
+    -unity-text-align: upper-center;
+    white-space: nowrap;
+    text-overflow: clip;
+    -unity-text-outline-width: 0;
+    -unity-text-outline-color: rgb(114, 114, 114);
+    text-shadow: -0.3px -0.15px 2px rgba(0, 0, 0, 0.63);
+    color: rgb(23, 23, 22);
+    letter-spacing: 1px;
+    flex-shrink: 1;
+    flex-grow: 0;
+    flex-basis: auto;
+    flex-direction: column;
+    flex-wrap: nowrap;
+    overflow: hidden;
+    visibility: visible;
+    display: flex;
+    padding-top: 8px;
+    padding-right: 7px;
+    padding-bottom: 4px;
+    padding-left: 7px;
+    min-height: 40px;
+    justify-content: flex-start;
+    align-items: auto;
+    align-content: flex-start;
+    align-self: auto;
+    background-color: rgb(217, 217, 217);
+    border-left-color: rgb(169, 169, 169);
+    border-right-color: rgb(169, 169, 169);
+    border-top-color: rgb(169, 169, 169);
+    border-bottom-color: rgb(169, 169, 169);
+    -unity-paragraph-spacing: -80px;
+    min-width: 50px;
+    height: 50px;
+    transition-duration: 0.1s, 0.1s, 0.1s, 0.1s, 0.1s, 0.1s, 0.1s;
+    transition-timing-function: ease-in-back, ease-in-back, ease-in-back, ease-in-back, ease-in-back, ease-in-back, ease-in-back;
+    transition-property: border-width, border-radius, height, width, margin, margin, background-color, border-color;
+}
+
+.ToolButton-active {
+    border-color: rgb(255, 204, 0);
+    background-color: rgb(166, 166, 166);
+    border-left-color: rgb(102, 102, 102);
+    border-right-color: rgb(102, 102, 102);
+    border-top-color: rgb(102, 102, 102);
+    border-bottom-color: rgb(102, 102, 102);
+    border-top-left-radius: 2px;
+    border-bottom-right-radius: 2px;
+    border-top-right-radius: 2px;
+    border-bottom-left-radius: 2px;
+    border-top-width: 1px;
+    border-right-width: 2px;
+    border-left-width: 2px;
+    border-bottom-width: 3px;
+    height: 45px;
+    margin-right: 5px;
+    margin-left: 5px;
+    transition-duration: 0.5s, 0.5s, 0.5s, 0.5s, 0.5s, 0.5s, 0.5s;
+    transition-timing-function: ease-out-elastic, ease-out-elastic, ease-out-elastic, ease-out-elastic, ease-out-elastic, ease-out-elastic, ease-out-elastic, ease-out-elastic;
+    transition-property: border-width, border-radius, height, width, margin, background-color, border-color;
+}
+
+.ToolButton-hovered {
+    color: rgb(255, 255, 228);
+    text-shadow: 0 0 3px rgba(96, 96, 0, 0.63);
+}

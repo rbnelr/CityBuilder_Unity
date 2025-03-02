@@ -1,0 +1,18 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" editor-extension-mode="False">
+    <Style src="project://database/Assets/GUI/main_gui_style.uss?fileID=7433441132597879392&amp;guid=089ad32fdaa1d4143bd44c112755b91a&amp;type=3#main_gui_style" />
+    <ui:VisualElement style="flex-grow: 1; flex-direction: column-reverse; align-items: center; justify-content: flex-start; align-self: auto; align-content: flex-start;">
+        <ui:VisualElement enabled="true" class="Toolshelf" style="display: flex;">
+            <ui:Button text="DEL" name="Button" class="ToolButton" style="font-size: 14px; color: rgb(72, 0, 0); background-color: rgb(255, 91, 91); border-left-color: rgb(181, 63, 63); border-right-color: rgb(181, 63, 63); border-top-color: rgb(181, 63, 63); border-bottom-color: rgb(181, 63, 63);" />
+            <ui:Label text="Label" name="MoveTool2" class="unity-button ToolButton" />
+            <ui:Button text="Move" name="MoveTool" class="ToolButton" style="font-size: 16px; -unity-font-style: bold;" />
+            <ui:Button text="Build&#10;__" name="TestTool" class="ToolButton" style="font-size: 16px;" />
+            <ui:Button text="Terra&#10;form" class="ToolButton" style="font-size: 14px; -unity-font-style: bold; padding-top: 5px; -unity-paragraph-spacing: -20px;" />
+        </ui:VisualElement>
+        <ui:VisualElement class="Toolshelf">
+            <ui:Button text="Road1" class="ToolButton" />
+            <ui:Button text="Button" class="ToolButton ToolButton-hovered" />
+            <ui:Button text="Button&#10;_" class="ToolButton ToolButton-active" />
+            <ui:Button text="↔" class="ToolButton" />
+        </ui:VisualElement>
+    </ui:VisualElement>
+</ui:UXML>

@@ -4,7 +4,7 @@ using UnityEngine.InputSystem.Controls;
 using Unity.Mathematics;
 using static Unity.Mathematics.math;
 
-public abstract class CursorInteractable : MonoBehaviour {
+public class CursorInteractable : MonoBehaviour {
 	//public abstract void on_cursor_over (Ray cursor_ray);
 	//public abstract void on_cursor_enter (Ray cursor_ray);
 	//public abstract void on_cursor_exit ();
@@ -125,13 +125,19 @@ public class CursorDragging {
 
 		target = ray.GetPoint(t);
 
-		// [CTRL + ALT] snap to ground?
-		if (!move_vertical && Keyboard.current.altKey.isPressed) {
-			// [ALT] Drag along single largest offset axis
-			float3 offs = target - drag_origin;
-			float3 snap_axis = MyMath.largest_axis(offs);
-			offs *= snap_axis; // snap movement to largest movement axis
+		if (move_vertical) {
+			// maybe use [CTRL + ALT] snap to ground?
+
+			float3 offs = (target - drag_origin) * float3(0,1,0); // snap movement to vertical
 			target = offs + drag_origin;
+		}
+		else {
+			if (Keyboard.current.altKey.isPressed) {
+				// [ALT] Drag along single largest offset axis
+				float3 offs = target - drag_origin;
+				offs *= MyMath.largest_axis(offs); // snap movement to largest movement axis
+				target = offs + drag_origin;
+			}
 		}
 
 		return true;
