@@ -11,33 +11,6 @@ using Newtonsoft.Json.Linq;
 #nullable enable
 
 public static class Util {
-	public static void HardClear<T> (this List<T> list) {
-		list.Clear();
-		list.Capacity = 0;
-	}
-
-	public static bool Chance (this ref Random rand, float probabilty) {
-		return rand.NextFloat(0, 1) < probabilty;
-	}
-	
-	public static T? Pick<T> (this ref Random rand, IReadOnlyList<T> choices) {
-		//Debug.Assert(choices.Any());
-		if (choices.Any())
-			return choices[ rand.NextInt(0, choices.Count()) ];
-		return default;
-	}
-
-	public static T? TryGet<T> (this JObject jobj, string key) {
-		if (jobj.TryGetValue(key, out JToken? value)) return value.Value<T>();
-		return default;
-	}
-	public static bool TryGet<T> (this JObject jobj, string key, ref T value) {
-		if (jobj.TryGetValue(key, out JToken? val)) {
-			value = val.Value<T>()!;
-			return true;
-		}
-		return false;
-	}
 
 	public static void GizmosDrawArrow (Vector3 pos, Vector3 direction, float arrowHeadLength = 0.25f, float arrowHeadAngle = 20.0f) {
 		Gizmos.DrawRay(pos, direction);
@@ -86,7 +59,48 @@ public static class Util {
 	}
 }
 
-public class MyMath {
+public static class Extensions {
+	
+//// Collections
+	public static void HardClear<T> (this List<T> list) {
+		list.Clear();
+		list.Capacity = 0;
+	}
+	
+//// Random
+	public static bool Chance (this ref Random rand, float probabilty) {
+		return rand.NextFloat(0, 1) < probabilty;
+	}
+	
+	public static T? Pick<T> (this ref Random rand, IReadOnlyList<T> choices) {
+		//Debug.Assert(choices.Any());
+		if (choices.Any())
+			return choices[ rand.NextInt(0, choices.Count()) ];
+		return default;
+	}
+
+//// Serialization
+	public static T? TryGet<T> (this JObject jobj, string key) {
+		if (jobj.TryGetValue(key, out JToken? value)) return value.Value<T>();
+		return default;
+	}
+	public static bool TryGet<T> (this JObject jobj, string key, ref T value) {
+		if (jobj.TryGetValue(key, out JToken? val)) {
+			value = val.Value<T>()!;
+			return true;
+		}
+		return false;
+	}
+}
+
+public static class MyMath {
+//// General
+	public static float3 largest_axis (float3 d) {
+		d = abs(d);
+		return d.x >= d.y && d.x >= d.z ? float3(1,0,0) :
+			( d.y >= d.z ? float3(0,1,0) : float3(0,0,1) );
+	}
+
 	// Rotate vector by 90 degrees in CW
 	public static float2 rotate90_right (float2 v) {
 		return float2(v.y, -v.x);
@@ -96,7 +110,7 @@ public class MyMath {
 		return float3(v.z, v.y, -v.x);
 	}
 
-	
+//// Intersection
 	public static bool line_line_intersect (float2 a, float2 ab, float2 c, float2 cd, out float2 out_point) {
 		out_point = 0;
 
@@ -112,6 +126,43 @@ public class MyMath {
 		return true; // always intersect for now
 	}
 }
+
+
+public class WeightedChoice {
+	// TODO: could be optimized using a binary search
+
+	public static int Get (IReadOnlyList<float> weights, float rand01) {
+		float total = 0;
+		for (int i=0; i<weights.Count; ++i) {
+			total += weights[i];
+		}
+
+		if (total <= 0) return -1;
+
+		rand01 *= total;
+
+		float accum = 0;
+		for (int i=0; i<weights.Count; ++i) {
+			accum += weights[i];
+			if (rand01 < accum)
+				return i;
+		}
+
+		return weights.Count-1;
+	}
+}
+public static class WeightedChoiceExt {
+	public static int Weighted (this ref Random rand, IReadOnlyList<float> weights) {
+		return WeightedChoice.Get(weights, rand.NextFloat());
+	}
+	
+	public static T? Weighted<T> (this ref Random rand, IReadOnlyList<T> items, Func<T, float> get_weight) {
+		var weights = items.Select(get_weight).ToArray(); // Not sure how to avoid alloc here
+		var idx = WeightedChoice.Get(weights, rand.NextFloat());
+		return idx >= 0 ? items[idx] : default;
+	}
+}
+
 
 // https://discussions.unity.com/t/logarithmic-slider/563185
 #if UNITY_EDITOR
@@ -167,40 +218,5 @@ public class LogarithmicRangeAttribute : PropertyAttribute {
 		this.min = min;
 		this.max = max;
 		this.power = power;
-	}
-}
-
-public class WeightedChoice {
-	// TODO: could be optimized using a binary search
-
-	public static int Get (IReadOnlyList<float> weights, float rand01) {
-		float total = 0;
-		for (int i=0; i<weights.Count; ++i) {
-			total += weights[i];
-		}
-
-		if (total <= 0) return -1;
-
-		rand01 *= total;
-
-		float accum = 0;
-		for (int i=0; i<weights.Count; ++i) {
-			accum += weights[i];
-			if (rand01 < accum)
-				return i;
-		}
-
-		return weights.Count-1;
-	}
-}
-public static class WeightedChoiceExt {
-	public static int Weighted (this ref Random rand, IReadOnlyList<float> weights) {
-		return WeightedChoice.Get(weights, rand.NextFloat());
-	}
-	
-	public static T? Weighted<T> (this ref Random rand, IReadOnlyList<T> items, Func<T, float> get_weight) {
-		var weights = items.Select(get_weight).ToArray(); // Not sure how to avoid alloc here
-		var idx = WeightedChoice.Get(weights, rand.NextFloat());
-		return idx >= 0 ? items[idx] : default;
 	}
 }
