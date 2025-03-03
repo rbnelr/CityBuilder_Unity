@@ -7,6 +7,11 @@
     align-content: flex-start;
 }
 
+.ToolshelfContainerHoriz {
+    flex-direction: row;
+    align-items: center;
+}
+
 .Toolshelf {
     border-top-left-radius: 3px;
     border-top-right-radius: 3px;
@@ -69,7 +74,7 @@
     padding-right: 7px;
     padding-bottom: 4px;
     padding-left: 7px;
-    min-height: 40px;
+    min-height: auto;
     justify-content: flex-start;
     align-items: auto;
     align-content: flex-start;
@@ -108,6 +113,7 @@
     transition-duration: 0.5s, 0.5s, 0.5s, 0.5s, 0.5s, 0.5s, 0.5s;
     transition-timing-function: ease-out-elastic, ease-out-elastic, ease-out-elastic, ease-out-elastic, ease-out-elastic, ease-out-elastic, ease-out-elastic, ease-out-elastic;
     transition-property: border-width, border-radius, height, width, margin, background-color, border-color;
+    margin-top: 6px;
 }
 
 .ToolButton-hovered {
@@ -122,10 +128,10 @@
 }
 
 .ToolButton-red {
-	color: rgb(72, 0, 0);
-	background-color: rgb(255, 91, 91);
-	border-left-color: rgb(181, 63, 63);
-	border-right-color: rgb(181, 63, 63);
-	border-top-color: rgb(181, 63, 63);
-	border-bottom-color: rgb(181, 63, 63);
+    color: rgb(72, 0, 0);
+    background-color: rgb(255, 91, 91);
+    border-left-color: rgb(181, 63, 63);
+    border-right-color: rgb(181, 63, 63);
+    border-top-color: rgb(181, 63, 63);
+    border-bottom-color: rgb(181, 63, 63);
 }

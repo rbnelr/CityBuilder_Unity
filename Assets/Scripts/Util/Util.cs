@@ -57,6 +57,14 @@ public static class Util {
 			}
 		}
 	}
+
+	public static void SetActiveRecursivelyEx (this GameObject go, bool active) {
+		go.SetActive (active);
+		foreach (Transform child in go.transform) {
+			SetActiveRecursivelyEx(child.gameObject, active);
+		}
+	}
+
 }
 
 public static class Extensions {

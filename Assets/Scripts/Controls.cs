@@ -27,7 +27,7 @@ public class Controls : MonoBehaviour {
 	}
 
 	void camera_controls () {
-		if (Keyboard.current.pKey.wasPressedThisFrame) {
+		if (Keyboard.current.f2Key.wasPressedThisFrame) {
 			view_debug_camera = !view_debug_camera;
 		}
 		if (debug_camera.gameObject.activeInHierarchy != view_debug_camera) { // if changed through button or through inspector
