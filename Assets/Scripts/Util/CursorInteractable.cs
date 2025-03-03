@@ -28,7 +28,7 @@ public class CursorDragging {
 
 	CursorInteractable find_interactable (Ray? ray, out RaycastHit hit) {
 		hit = new RaycastHit();
-		if (ray.HasValue && Physics.Raycast(ray.Value, out hit, Mathf.Infinity, Controls.INTERACTABLE_LAYER)) {
+		if (ray.HasValue && Physics.Raycast(ray.Value, out hit, INFINITY, Controls.INTERACTABLE_LAYER)) {
 			if (hit.collider.gameObject.TryGetComponent<CursorInteractable>(out var inter)) {
 				return inter;
 			}
@@ -44,7 +44,6 @@ public class CursorDragging {
 			if (dragging_button.isPressed) {
 				// actively dragging
 
-				// Physics.Raycast(cursor_ray, out var info, Mathf.Infinity, Controls.GROUND_LAYER)
 				if (ray.HasValue && drag_logic(ray.Value, out float3 target)) {
 					// move to target point while keeping original drag point on object
 					active_obj.transform.position = target - drag_offs;

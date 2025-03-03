@@ -16,19 +16,45 @@ public class RoadTest : MonoBehaviour {
 
 	float road_center_length;
 
-	Bezier get_bez () => new Bezier(
+	public Bezier get_bez () => new Bezier(
 		obj_a.transform.position, obj_b.transform.position,
 		obj_c.transform.position, obj_d.transform.position);
 
+	public void set_bez (Bezier bez) {
+		obj_a.transform.position = bez.a;
+		obj_d.transform.position = bez.d;
+
+		obj_b.transform.position = bez.b;
+		obj_c.transform.position = bez.c;
+	}
+
 	// TODO: goes into RoadAsset
 	[System.Serializable]
-	public struct SubmeshMaterial {
+	public class SubmeshMaterial {
 		public Material mat;
 		public float2 texture_scale;
 	};
 	public SubmeshMaterial[] materials;
 
+	void Start () {
+		foreach (var mat in materials) {
+			// copy material, so we don't accidentally affect all objects?
+			mat.mat = new Material(mat.mat);
+		}
+	}
+
+	public void set_controls_active (bool active) {
+		obj_a.SetActive(active);
+		obj_b.SetActive(active);
+		obj_c.SetActive(active);
+		obj_d.SetActive(active);
+	}
+
 	void Update () {
+		refresh();
+	}
+
+	public void refresh () {
 		var bez = get_bez();
 
 		road_center_length = bez.approx_len();
@@ -47,7 +73,7 @@ public class RoadTest : MonoBehaviour {
 			mat.mat.SetVector("_TextureScale", (Vector2)scale);
 		}
 		
-		GetComponent<MeshRenderer>().sharedMaterials = materials.Select(x => x.mat).ToArray();
+		GetComponent<MeshRenderer>().materials = materials.Select(x => x.mat).ToArray();
 
 		refresh_bounds();
 	}

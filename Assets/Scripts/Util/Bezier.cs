@@ -91,6 +91,12 @@ public struct Bezier {
 		lo.y += h0;
 		hi.y += h1;
 
+		if (any(!isfinite(lo)) || any(!isfinite(hi))) {
+			// handle NaN due to singularity bezier?
+			lo = -10000000;
+			hi = +10000000;
+		}
+
 		var bounds = new Bounds();
 		bounds.SetMinMax(lo, hi);
 		return bounds;

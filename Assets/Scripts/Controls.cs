@@ -26,6 +26,12 @@ public class Controls : MonoBehaviour {
 		return ray;
 	}
 
+	public static bool raycast_ground (out RaycastHit hit) {
+		hit = default;
+		var ray = cursor_ray();
+		return ray.HasValue && Physics.Raycast(ray.Value, out hit, INFINITY, GROUND_LAYER);
+	}
+
 	void camera_controls () {
 		if (Keyboard.current.f2Key.wasPressedThisFrame) {
 			view_debug_camera = !view_debug_camera;
