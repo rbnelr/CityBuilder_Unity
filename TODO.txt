@@ -1,5 +1,5 @@
 -Add animation for gameobject vehicles
--add toolshelf ui classes
+-finish toolshelf ui code
 -render roads?
 -add basic road building!
 -made vehicles brake for vehicles on segments

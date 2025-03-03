@@ -1,3 +1,12 @@
+.ToolshelfContainer {
+    flex-grow: 1;
+    flex-direction: column-reverse;
+    align-items: center;
+    justify-content: flex-start;
+    align-self: auto;
+    align-content: flex-start;
+}
+
 .Toolshelf {
     border-top-left-radius: 3px;
     border-top-right-radius: 3px;
@@ -104,4 +113,19 @@
 .ToolButton-hovered {
     color: rgb(255, 255, 228);
     text-shadow: 0 0 3px rgba(96, 96, 0, 0.63);
+}
+
+.ToolButton-multiline {
+    font-size: 14px;
+    padding-top: 4px;
+    -unity-paragraph-spacing: -20px;
+}
+
+.ToolButton-red {
+	color: rgb(72, 0, 0);
+	background-color: rgb(255, 91, 91);
+	border-left-color: rgb(181, 63, 63);
+	border-right-color: rgb(181, 63, 63);
+	border-top-color: rgb(181, 63, 63);
+	border-bottom-color: rgb(181, 63, 63);
 }

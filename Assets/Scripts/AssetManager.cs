@@ -38,8 +38,8 @@ public class AssetManager : MonoBehaviour {
 	public Material building_mat;
 
 	class AssetsDefinition {
-		public List<VehicleAsset> vehicles;
-		public List<BuildingAsset> buildings;
+		public List<VehicleAsset> vehicles = null;
+		public List<BuildingAsset> buildings = null;
 	}
 
 	// delete all existing saved assets
