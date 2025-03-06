@@ -67,6 +67,7 @@ public class Junction : MonoBehaviour {
 		else if (changed && refresh) Refresh();
 	}
 	
+	[NaughtyAttributes.Button("Refresh")]
 	public void Refresh () {
 		_radius = 0;
 		

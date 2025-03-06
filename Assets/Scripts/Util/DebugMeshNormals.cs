@@ -25,12 +25,17 @@ public class DebugMeshNormals : MonoBehaviour {
 			float3 pos = positions[i];
 			float3 norm = normals[i];
 			float4 tang = tangents[i];
+			
+			float3 bitang = cross(norm, tang.xyz) * tang.w;
 
 			Gizmos.color = Color.blue;
 			Gizmos.DrawLine(pos, pos + norm * line_length);
 
 			Gizmos.color = Color.magenta;
 			Gizmos.DrawLine(pos, pos + tang.xyz * line_length);
+
+			Gizmos.color = Color.green;
+			Gizmos.DrawLine(pos, pos + bitang * line_length);
 		}
 
 		Gizmos.matrix = Matrix4x4.identity;
@@ -57,15 +62,21 @@ public class DebugMeshNormals : MonoBehaviour {
 			Vertex v;
 			v.position = positions[i];
 			v.normal = normals[i];
-			v.tangent = ((float4)tangents[i]).xyz;
+			var tang = (float4)tangents[i];
+			v.tangent = tang.xyz;
 
 			v = distort(v);
+
+			float3 bitang = tang.w * cross(v.normal, v.tangent);
 
 			Gizmos.color = Color.blue;
 			Gizmos.DrawLine(v.position, v.position + v.normal * line_length);
 
-			//Gizmos.color = Color.magenta;
-			//Gizmos.DrawLine(v.position, v.position + v.tangent * line_length);
+			Gizmos.color = Color.magenta;
+			Gizmos.DrawLine(v.position, v.position + v.tangent * line_length);
+
+			Gizmos.color = Color.green;
+			Gizmos.DrawLine(v.position, v.position + bitang * line_length);
 		}
 
 		Gizmos.matrix = Matrix4x4.identity;

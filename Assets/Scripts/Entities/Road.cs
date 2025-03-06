@@ -95,6 +95,7 @@ public class Road : MonoBehaviour {
 	}
 
 	////
+	[NaughtyAttributes.Button("Refresh")]
 	public void Refresh (bool adjust_ends=false) {
 		Debug.Assert(junc0 && junc1);
 
@@ -112,25 +113,25 @@ public class Road : MonoBehaviour {
 
 		refresh_mesh();
 	}
-
-
+	
+	[NaughtyAttributes.Button("refresh_mesh")]
 	public void refresh_mesh () {
 		var local_mat = materials.Select(x => x.copy()).ToArray();
 
 		float road_center_length = bezier.approx_len();
 		
 		foreach (var mat in local_mat) {
-			mat.mat.SetVector("_BezierA", (Vector3)bezier.a);
-			mat.mat.SetVector("_BezierB", (Vector3)bezier.b);
-			mat.mat.SetVector("_BezierC", (Vector3)bezier.c);
-			mat.mat.SetVector("_BezierD", (Vector3)bezier.d);
-
-			bool worldspace = mat.mat.GetInt("_WorldspaceTextures") != 0;
-
-			float2 scale = mat.texture_scale;
-			if (!worldspace)
-				scale.x /= road_center_length;
-			mat.mat.SetVector("_TextureScale", (Vector2)scale);
+			//mat.mat.SetVector("_BezierA", (Vector3)bezier.a);
+			//mat.mat.SetVector("_BezierB", (Vector3)bezier.b);
+			//mat.mat.SetVector("_BezierC", (Vector3)bezier.c);
+			//mat.mat.SetVector("_BezierD", (Vector3)bezier.d);
+			//
+			//bool worldspace = mat.mat.GetInt("_WorldspaceTextures") != 0;
+			//
+			//float2 scale = mat.texture_scale;
+			//if (!worldspace)
+			//	scale.x /= road_center_length;
+			//mat.mat.SetVector("_TextureScale", (Vector2)scale);
 		}
 		
 		GetComponent<MeshRenderer>().materials = local_mat.Select(x => x.mat).ToArray();
@@ -200,6 +201,9 @@ public class Road : MonoBehaviour {
 			Gizmos.color = lane.dir == RoadDirection.Forward ? Color.yellow : Color.blue;
 			calc_path(lane).debugdraw();
 		}
+
+		//DebugVis.DebugCurvedMeshNormals(bezier, GetComponent<MeshFilter>().sharedMesh, transform);
+		DebugMeshNormals.DrawOnGizmos(GetComponent<MeshFilter>().sharedMesh, transform.localToWorldMatrix);
 	}
 }
 

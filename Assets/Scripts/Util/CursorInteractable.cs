@@ -28,7 +28,7 @@ public class CursorDragging {
 
 	CursorInteractable find_interactable (Ray? ray, out RaycastHit hit) {
 		hit = new RaycastHit();
-		//if (ray.HasValue && Physics.Raycast(ray.Value, out hit, INFINITY, Controls.INTERACTABLE_LAYER)) {
+		//if (ray.HasValue && Physics.Raycast(ray.Value, out hit, INFINITY, Controls._TMP_LAYER)) {
 		//	if (hit.collider.gameObject.TryGetComponent<CursorInteractable>(out var inter)) {
 		//		return inter;
 		//	}

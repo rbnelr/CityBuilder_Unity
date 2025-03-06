@@ -7,6 +7,7 @@ using static Unity.Mathematics.math;
 public class Controls : MonoBehaviour {
 	public const int GROUND_LAYER = 1 << 6;
 	public const int JUNCTIONS_LAYER = 1 << 7;
+	public const int _TMP_LAYER = 1 << 8;
 
 	public GameCamera main_camera;
 	public Flycam debug_camera;
