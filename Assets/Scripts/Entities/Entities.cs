@@ -30,8 +30,13 @@ public class Entities : MonoBehaviour {
 	public IEnumerable<Junction> junctions => transform.GetComponentsInChildren<Junction>();
 	
 	public void destroy_all () {
-		Util.DestroyChildren(roads_go.transform);
-		Util.DestroyChildren(junctions_go.transform);
+		foreach (var road in roads) {
+			road.destroy();
+		}
+		foreach (var road in junctions) {
+			road.destroy();
+		}
+
 		Util.DestroyChildren(buildings_go.transform);
 
 		destroy_vehicles();

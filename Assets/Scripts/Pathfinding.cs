@@ -70,15 +70,15 @@ public class Pathfinding : MonoBehaviour {
 
 		//if (start.forw) {
 		{
-			start.junc_b._cost = (start.length * 0.5f) / start.speed_limit;
-			start.junc_b._pred_road = start;
-			unvisited.Enqueue(start.junc_b, start.junc_b._cost);
+			start.junc1._cost = (start.length_for_pathfinding * 0.5f) / start.speed_limit;
+			start.junc1._pred_road = start;
+			unvisited.Enqueue(start.junc1, start.junc1._cost);
 		}
 		//if (start.backw) {
 		{
-			start.junc_a._cost = (start.length * 0.5f) / start.speed_limit;
-			start.junc_a._pred_road = start;
-			unvisited.Enqueue(start.junc_a, start.junc_a._cost);
+			start.junc0._cost = (start.length_for_pathfinding * 0.5f) / start.speed_limit;
+			start.junc0._pred_road = start;
+			unvisited.Enqueue(start.junc0, start.junc0._cost);
 		}
 		
 		//net._dijk_iter = 0;
@@ -99,7 +99,7 @@ public class Pathfinding : MonoBehaviour {
 			//net._dijk_iter++;
 
 			// early out optimization
-			if (dest.junc_a._visited && dest.junc_b._visited)
+			if (dest.junc0._visited && dest.junc1._visited)
 				break; // shortest path found if both dest segment nodes are visited
 
 			// Get all allowed turns for incoming segment
@@ -123,7 +123,7 @@ public class Pathfinding : MonoBehaviour {
 					//	continue;
 					//}
 
-					float len = road.length + road.junc_a._radius + road.junc_b._radius;
+					float len = road.length_for_pathfinding + road.junc0._radius + road.junc1._radius;
 					float cost = len / road.speed_limit;
 					Debug.Assert(cost > 0);
 
@@ -149,17 +149,17 @@ public class Pathfinding : MonoBehaviour {
 		float dist_from_b = 0.5f;
 
 		Junction end_node = null;
-		float a_cost = dest.junc_a._cost + dist_from_a / dest.speed_limit;
-		float b_cost = dest.junc_b._cost + dist_from_b / dest.speed_limit;
+		float a_cost = dest.junc0._cost + dist_from_a / dest.speed_limit;
+		float b_cost = dest.junc1._cost + dist_from_b / dest.speed_limit;
 
 		// do not count final node if coming from dest segment, to correctly handle start == dest
-		if (dest.junc_a._pred_road && dest.junc_a._pred_road != dest) {
-			end_node = dest.junc_a;
+		if (dest.junc0._pred_road && dest.junc0._pred_road != dest) {
+			end_node = dest.junc0;
 		}
-		if (dest.junc_b._pred_road && dest.junc_b._pred_road != dest) {
+		if (dest.junc1._pred_road && dest.junc1._pred_road != dest) {
 			// if both nodes count, choose end node that end up fastest
 			if (!end_node || b_cost < a_cost) {
-				end_node = dest.junc_b;
+				end_node = dest.junc1;
 			}
 		}
 
@@ -232,7 +232,7 @@ public class Pathfinding : MonoBehaviour {
 
 				//Handles.Label(node.position, node._cost.ToString("0."));
 				if (node._pred_road) {
-					float3 pos = (node._pred_road.pos_a + node._pred_road.pos_b) * 0.5f;
+					float3 pos = (node._pred_road.pos0 + node._pred_road.pos1) * 0.5f;
 					
 					Gizmos.color = Color.cyan;
 					Gizmos.DrawRay(pos, node.position - pos);

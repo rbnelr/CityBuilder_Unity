@@ -56,3 +56,41 @@ void curve_mesh_float (float3 a, float3 b, float3 c, float3 d,
 	norm_out = mul(rotate_to_bezier, norm_obj);
 	tang_out = mul(rotate_to_bezier, tang_obj);
 }
+
+//// SDF join: shape A AND shape B
+//float sdf_intersect (float a, float b) {
+//	return max(a,b);
+//}
+//// SDF join: shape A OR shape B
+//float sdf_union (float a, float b) {
+//	return min(a,b);
+//}
+// SDF join: shape A AND NOT shape B
+float sdf_difference (float a, float b) {
+	return min(a,-b);
+}
+
+float sdf_circle (float2 pos, float radius) {
+	return radius - length(pos);
+}
+float sdf_circle_outline (float2 pos, float radius, float outline_width) {
+	float inner = sdf_circle(pos, radius - outline_width*0.5);
+	float outer = sdf_circle(pos, radius + outline_width*0.5);
+	return sdf_difference(outer, inner);
+}
+
+float sdf_eval (float sdf, float4 col_inside, float4 col_outside) {
+	// 1 pixel antialias
+	sdf /= length(fwidth(sdf)); // delta sdf per pixel
+	return lerp(col_inside, col_outside, saturate(sdf));
+}
+float sdf_eval (float sdf) {
+	// 1 pixel antialias
+	sdf /= length(fwidth(sdf)); // delta sdf per pixel
+	return saturate(sdf);
+}
+
+void decal_circle_sdf_float (float3 pos, out float value) {
+	float sdf = sdf_circle_outline(pos.xz, 0.4, 0.1); // delta sdf per pixel
+	value = sdf_eval(sdf);
+}

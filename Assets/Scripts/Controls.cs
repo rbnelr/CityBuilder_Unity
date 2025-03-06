@@ -5,8 +5,8 @@ using static Unity.Mathematics.math;
 
 [DefaultExecutionOrder(-200)]
 public class Controls : MonoBehaviour {
-	public const int INTERACTABLE_LAYER = 1 << 6;
-	public const int GROUND_LAYER = 1 << 7;
+	public const int GROUND_LAYER = 1 << 6;
+	public const int JUNCTIONS_LAYER = 1 << 7;
 
 	public GameCamera main_camera;
 	public Flycam debug_camera;
@@ -26,6 +26,11 @@ public class Controls : MonoBehaviour {
 		return ray;
 	}
 
+	public static bool raycast (out RaycastHit hit, int layerMask) {
+		hit = default;
+		var ray = cursor_ray();
+		return ray.HasValue && Physics.Raycast(ray.Value, out hit, INFINITY, layerMask);
+	}
 	public static bool raycast_ground (out RaycastHit hit) {
 		hit = default;
 		var ray = cursor_ray();

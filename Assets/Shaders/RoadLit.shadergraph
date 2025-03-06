@@ -897,7 +897,7 @@
     "m_Type": "UnityEditor.ShaderGraph.StickyNoteData",
     "m_ObjectId": "139f2d1975754cffbabcc84267abd5c4",
     "m_Title": "Texture mapping",
-    "m_Content": "Support either UV-mapped or worldspace mapped textures and allow for scaling (tiling) and offsetting",
+    "m_Content": "Support either UV-mapped or worldspace mapped textures and allow for scaling (tiling) and offsetting\nTODO: pretty sure this breaks normal mapping since tangents are not adjusted, unsure how you are supposed to fix that in shader graph, since you can adjust UVs but not tangents in fragment shader, or tangents but not UVs in vertex shader",
     "m_TextSize": 0,
     "m_Theme": 1,
     "m_Position": {
@@ -1671,29 +1671,6 @@
 
 {
     "m_SGVersion": 0,
-    "m_Type": "UnityEditor.ShaderGraph.Vector3MaterialSlot",
-    "m_ObjectId": "517a4679446648c0bd197accb9e2e323",
-    "m_Id": 1,
-    "m_DisplayName": "Out",
-    "m_SlotType": 1,
-    "m_Hidden": false,
-    "m_ShaderOutputName": "Out",
-    "m_StageCapability": 3,
-    "m_Value": {
-        "x": 0.0,
-        "y": 0.0,
-        "z": 0.0
-    },
-    "m_DefaultValue": {
-        "x": 0.0,
-        "y": 0.0,
-        "z": 0.0
-    },
-    "m_Labels": []
-}
-
-{
-    "m_SGVersion": 0,
     "m_Type": "UnityEditor.ShaderGraph.DynamicVectorMaterialSlot",
     "m_ObjectId": "5370ef3511b348a2955cd0cf61fd3cd6",
     "m_Id": 2,
@@ -2446,7 +2423,7 @@
             "m_Id": "115643419a7c44e1940725a718beac6f"
         },
         {
-            "m_Id": "517a4679446648c0bd197accb9e2e323"
+            "m_Id": "cdeb2f5a0110479ea051ddc0ef1d9575"
         }
     ],
     "synonyms": [
@@ -2461,8 +2438,8 @@
     "m_CustomColors": {
         "m_SerializableColors": []
     },
-    "_maskInput": "xyz",
-    "convertedMask": "xyz"
+    "_maskInput": "xxxx",
+    "convertedMask": "xxxx"
 }
 
 {
@@ -3204,6 +3181,31 @@
     "m_Property": {
         "m_Id": "8822f9867cb446f9906e9a5ffeae6fdf"
     }
+}
+
+{
+    "m_SGVersion": 0,
+    "m_Type": "UnityEditor.ShaderGraph.Vector4MaterialSlot",
+    "m_ObjectId": "cdeb2f5a0110479ea051ddc0ef1d9575",
+    "m_Id": 1,
+    "m_DisplayName": "Out",
+    "m_SlotType": 1,
+    "m_Hidden": false,
+    "m_ShaderOutputName": "Out",
+    "m_StageCapability": 3,
+    "m_Value": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0,
+        "w": 0.0
+    },
+    "m_DefaultValue": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0,
+        "w": 0.0
+    },
+    "m_Labels": []
 }
 
 {

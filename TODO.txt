@@ -1,7 +1,24 @@
 -Add animation for gameobject vehicles
--finish toolshelf ui code
--render roads?
+
+-render roads
+ -adjust to road width
+ -render junctions
+ -draw lane markings?
+ -draw props?
+ 
+-highlighting for junctions + roads in a basic or nice way
+-raycasting for junctions + roads
+ 
 -add basic road building!
--made vehicles brake for vehicles on segments
+ -handling selection (in 'view' mode? or add a select tool?
+ -bulldoze (junctions / roads) [DEL hotkey] -> bulldoze via click + bulldoze selection?
+  -if nothing selected: bulldoze becomes toggle, press 'selects' and release confirms while allowing click drag to delete paths?
+  -if selection: button is press button and pressing deletes current selection
+ -move junctions
+ -move roads (allow individual control point movement + a more basic and constrained curve modify tool)
+
+-make vehicles brake for vehicles on segments
 -maybe try to port intersection code (if performance still acceptable)
  -port vehicles (and roads?) to ECS
+ 
+-debug tangents!

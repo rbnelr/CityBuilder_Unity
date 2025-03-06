@@ -69,7 +69,7 @@ public class UI_ButtonTool : MonoBehaviour {
 	
 	protected virtual void on_activated () {
 		if (exclusive) {
-			parent?.deactivate_nonexclusive_siblings(this);
+			if (parent) parent.deactivate_nonexclusive_siblings(this);
 		}
 
 		//Debug.Log($"ButtonTool on_activated {name}");

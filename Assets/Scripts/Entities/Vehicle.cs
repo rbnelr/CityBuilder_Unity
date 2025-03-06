@@ -45,7 +45,7 @@ public class Vehicle : MonoBehaviour {
 	//     lets say vehicles follow 20 nodes, then always repath with new traffic data (and constantly update the next few lanes)
 
 	struct Motion {
-		public Bezier bezier;
+		public OffsetBezier bezier;
 		public float bez_length;
 		public float cur_dist;
 	};
@@ -62,16 +62,17 @@ public class Vehicle : MonoBehaviour {
 		Road cur_road = path[path_idx];
 		if (path_idx == 0) {
 			var next_junc = Junction.between(cur_road, path[path_idx + 1]);
-			return next_junc != cur_road.junc_a ? RoadDirection.Forward : RoadDirection.Backward;
+			return next_junc != cur_road.junc0 ? RoadDirection.Forward : RoadDirection.Backward;
 		}
 		else {
 			var prev_junc = Junction.between(path[path_idx - 1], cur_road);
-			return prev_junc == cur_road.junc_a ? RoadDirection.Forward : RoadDirection.Backward;
+			return prev_junc == cur_road.junc0 ? RoadDirection.Forward : RoadDirection.Backward;
 		}
 	}
 	// TODO: split lanes by direction by default so this becomes unneeded
-	static Road.Lane pick_lane (Road road, RoadDirection dir) {
-		return rand.Pick(road.lanes.Where(x => x.dir == dir).ToArray());
+	static RoadLane pick_lane (Road road, RoadDirection dir) {
+		var lane = rand.Pick(road.lanes.Where(x => x.dir == dir).ToArray());
+		return new RoadLane(road, lane);
 	}
 
 	static float3 parking_spot (Building b) => b.transform.TransformPoint(float3(0, 0, 8));
@@ -79,13 +80,14 @@ public class Vehicle : MonoBehaviour {
 	IEnumerable<Motion> follow_path () {
 		Debug.Assert(path.Length >= 2);
 
-		Road cur_road = path[0];
-		Road.Lane cur_lane = pick_lane(cur_road, get_road_dir(0));
+		var cur_lane = pick_lane(path[0], get_road_dir(0));
 
 		{ // building -> first lane
-			var bezier = Bezier.from_line(parking_spot(start_building), cur_road.get_lane_path(cur_lane).a);
+			float3 point = cur_lane.road.calc_path(cur_lane.lane).eval(0).pos;
+			// avoid the need for bezier here? simply have vehicle drive to target point?
+			var bezier = Bezier.from_line(parking_spot(start_building), point);
 			yield return new Motion {
-				bezier = bezier,
+				bezier = bezier.offset(0),
 				bez_length = bezier.approx_len(),
 				cur_dist = 0
 			};
@@ -93,7 +95,7 @@ public class Vehicle : MonoBehaviour {
 
 		for (_path_idx = 0; _path_idx < path.Length; _path_idx++) {
 			{ //// Road
-				var bezier = cur_road.get_lane_path(cur_lane);
+				var bezier = cur_lane.road.calc_path(cur_lane.lane);
 
 				yield return new Motion {
 					bezier = bezier,
@@ -105,29 +107,29 @@ public class Vehicle : MonoBehaviour {
 			if (_path_idx == path.Length - 1)
 				break; // No junction at end
 
-			Road next_road = path[_path_idx + 1];
-			Road.Lane next_lane = pick_lane(next_road, get_road_dir(_path_idx + 1));
+			RoadLane next_lane = pick_lane(path[_path_idx + 1], get_road_dir(_path_idx + 1));
 
 			{ //// Junction
 
-				var junc = Junction.between(cur_road, next_road);
-				var bezier = junc.calc_curve(cur_road, next_road, cur_lane, next_lane);
+				var junc = Junction.between(cur_lane.road, next_lane.road);
+				var bezier = junc.calc_curve(cur_lane, next_lane);
 
 				yield return new Motion {
-					bezier = bezier,
+					bezier = bezier.offset(0),
 					bez_length = bezier.approx_len(),
 					cur_dist = 0
 				};
 			}
 
-			cur_road = next_road;
 			cur_lane = next_lane;
 		}
 
 		{ // last lane -> building
-			var bezier = Bezier.from_line(cur_road.get_lane_path(cur_lane).d, parking_spot(target_building));
+			float3 point = cur_lane.road.calc_path(cur_lane.lane).eval(1).pos;
+
+			var bezier = Bezier.from_line(point, parking_spot(target_building));
 			yield return new Motion {
-				bezier = bezier,
+				bezier = bezier.offset(0),
 				bez_length = bezier.approx_len(),
 				cur_dist = 0
 			};
@@ -201,7 +203,7 @@ public class Vehicle : MonoBehaviour {
 			var bez = motion.bezier.eval(bez_t);
 
 			transform.position = bez.pos;
-			transform.rotation = Quaternion.LookRotation(bez.vel);
+			transform.rotation = Quaternion.LookRotation(bez.forw);
 
 			float step = asset.max_speed * g.game_time.dt;
 			motion.cur_dist += step;

@@ -15,8 +15,6 @@ public class TestMapBuilder : MonoBehaviour {
 	[Range(0, 10000)]
 	public int num_vehicles = 2;
 
-	public float intersection_radius = 0.0f;
-
 	[Range(0.0f, 1.0f)]
 	public float connection_chance = 0.7f;
 
@@ -55,9 +53,6 @@ public class TestMapBuilder : MonoBehaviour {
 		if (flip) (node_a, node_b) = (node_b, node_a);
 
 		var road = Road.create(prefab, node_a, node_b);
-		
-		node_a._radius = max(node_a._radius, prefab.width/2);
-		node_b._radius = max(node_b._radius, prefab.width/2);
 	}
 	
 	
@@ -79,7 +74,6 @@ public class TestMapBuilder : MonoBehaviour {
 		for (int x=0; x<grid+1; ++x) {
 			var junc = Junction.create();
 			junc.position = base_pos + float3(x, 0, y) * float3(spacing, 0, spacing);
-			junc._radius = 0;
 		
 			bool big_intersec = (x-5) % 10 == 0 && (y-5) % 10 == 0;
 			//node->_fully_dedicated_turns = big_intersec;
@@ -107,14 +101,6 @@ public class TestMapBuilder : MonoBehaviour {
 				var b = junctions[int2(x, y+1)];
 				create_segment(asset, a, b, flip);
 			}
-		}
-
-		//foreach (var junc in network.junctions) {
-		//	junc.update_cached(intersection_radius);
-		//	junc.set_defaults();
-		//}
-		foreach (var road in g.entities.roads_go.GetComponentsInChildren<Road>()) {
-			road.refresh(reset: true); // update road end positions
 		}
 
 		

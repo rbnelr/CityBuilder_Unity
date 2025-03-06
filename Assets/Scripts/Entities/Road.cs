@@ -6,29 +6,151 @@ using static Unity.Mathematics.math;
 using Random = Unity.Mathematics.Random;
 
 public class Road : MonoBehaviour {
-	public Junction junc_a { get; private set; }
-	public Junction junc_b { get; private set; }
+	public Junction junc0 { get; private set; }
+	public Junction junc1 { get; private set; }
 
-	public float3 pos_a { get; set; } // TODO: make set private later
-	public float3 pos_b { get; set; }
+	public float3 pos0;
+	public float3 pos1;
+	public float3 pos0_ctrl;
+	public float3 pos1_ctrl;
 
-	public float speed_limit => 70 / 3.6f;
-	public float length => distance(pos_a, pos_b);
+	public Bezier bezier {
+		get { return new Bezier(pos0, pos0_ctrl, pos1_ctrl, pos1); }
+		set {
+			pos0 = value.a;
+			pos0_ctrl = value.b;
+			pos1_ctrl = value.c;
+			pos1 = value.d;
+		}
+	}
+
+//// TODO: goes into RoadAsset
 	
 	public float width;
 
 	public float edgeL => -width / 2; // TODO
 	public float edgeR => width / 2; // TODO
+
+	public float speed_limit => 70 / 3.6f;
 	
 	[System.Serializable]
 	public struct Lane {
 		public float shift;
 		public RoadDirection dir;
 
-		public float height => 0.01f;
+		public float height => 0.10f;
 	}
 
 	public Lane[] lanes;
+
+	[System.Serializable]
+	public class SubmeshMaterial {
+		public Material mat;
+		public float2 texture_scale;
+
+		public SubmeshMaterial copy () {
+			return new SubmeshMaterial{
+				mat = new Material(mat),
+				texture_scale = texture_scale
+			};
+		}
+	};
+	public SubmeshMaterial[] materials; // shared between roads
+
+	//// 
+	static int _counter = 0;
+	public void set_name (string custom_name=null) {
+		name = custom_name ?? $"Road #{_counter++}";
+	}
+
+	public static Road create (Road prefab, Junction junc0, Junction junc1, string name=null) {
+		Debug.Assert(junc0 != junc1);
+
+		var road = Instantiate(prefab, g.entities.roads_go.transform);
+		road.set_name(name);
+
+		road.junc0 = junc0;
+		junc0.connect_road(road, refresh: false);
+		road.junc1 = junc1;
+		junc1.connect_road(road, refresh: false);
+
+		// defer refresh, to avoid missing connection, but this still refreshes us twice TODO: fix!
+		junc0.Refresh();
+		junc1.Refresh();
+
+		return road;
+	}
+
+	public void destroy (bool keep_empty_junc=false) {
+		if (junc0) junc0.disconnect_road(this, true, keep_empty_junc); // refresh on all remaining roads
+		junc0 = null;
+		if (junc1) junc1.disconnect_road(this, true, keep_empty_junc); // refresh on all remaining roads
+		junc1 = null;
+
+		Destroy(gameObject);
+	}
+	// Handle destruction from editor
+	void OnDestroy () {
+		destroy();
+	}
+
+	////
+	public void Refresh (bool adjust_ends=false) {
+		Debug.Assert(junc0 && junc1);
+
+		if (adjust_ends) {
+			pos0 = junc0.position;
+			pos1 = junc1.position;
+
+			float3 dir = normalizesafe(pos1 - pos0);
+
+			pos0 += dir * junc0._radius;
+			pos1 -= dir * junc1._radius;
+
+			bezier = Bezier.from_line(pos0, pos1);
+		}
+
+		refresh_mesh();
+	}
+
+
+	public void refresh_mesh () {
+		var local_mat = materials.Select(x => x.copy()).ToArray();
+
+		float road_center_length = bezier.approx_len();
+		
+		foreach (var mat in local_mat) {
+			mat.mat.SetVector("_BezierA", (Vector3)bezier.a);
+			mat.mat.SetVector("_BezierB", (Vector3)bezier.b);
+			mat.mat.SetVector("_BezierC", (Vector3)bezier.c);
+			mat.mat.SetVector("_BezierD", (Vector3)bezier.d);
+
+			bool worldspace = mat.mat.GetInt("_WorldspaceTextures") != 0;
+
+			float2 scale = mat.texture_scale;
+			if (!worldspace)
+				scale.x /= road_center_length;
+			mat.mat.SetVector("_TextureScale", (Vector2)scale);
+		}
+		
+		GetComponent<MeshRenderer>().materials = local_mat.Select(x => x.mat).ToArray();
+
+		refresh_bounds();
+	}
+
+	void refresh_bounds () {
+		var bounds = bezier.approx_road_bounds(-width/2, +width/2, -2, +5); // calculate xz bounds based on width
+		bounds.Expand(float3(1,0,1)); // extend xz by a little to catch mesh overshoot
+		GetComponent<MeshRenderer>().bounds = bounds;
+
+		var coll = GetComponent<BoxCollider>();
+		coll.center = bounds.center;
+		coll.size   = bounds.size;
+	}
+
+
+//// Util
+	public float length_for_pathfinding => distance(pos0, pos1);
 
 	public IEnumerable<Lane> lanes_in_dir (RoadDirection dir) {
 		// TODO: can be optimized if lanes are stored in sorted order
@@ -43,87 +165,52 @@ public class Road : MonoBehaviour {
 		return lanes_in_dir(get_dir_from_junc(junc));
 	}
 	
-	public Junction other_junction (Junction junc) => junc_a != junc ? junc_a : junc_b;
+	public Junction other_junction (Junction junc) => junc0 != junc ? junc0 : junc1;
 	
 	RoadDirection get_dir_to_junc (Junction junc) {
-		Debug.Assert(junc != null && (junc == junc_a || junc == junc_b));
-		return junc_a != junc ? RoadDirection.Forward : RoadDirection.Backward;
+		Debug.Assert(junc != null && (junc == junc0 || junc == junc1));
+		return junc0 != junc ? RoadDirection.Forward : RoadDirection.Backward;
 	}
 	RoadDirection get_dir_from_junc (Junction junc) {
-		Debug.Assert(junc != null && (junc == junc_a || junc == junc_b));
-		return junc_a == junc ? RoadDirection.Forward : RoadDirection.Backward;
+		Debug.Assert(junc != null && (junc == junc0 || junc == junc1));
+		return junc0 == junc ? RoadDirection.Forward : RoadDirection.Backward;
 	}
 
-	public Bezier get_lane_path (Lane lane) {
-		float3 a = transform.TransformPoint(lane.shift*10/width, lane.height, -5);
-		float3 b = transform.TransformPoint(lane.shift*10/width, lane.height, +5);
-
-		var bez = Bezier.from_line(a, b);
-
-		return lane.dir == RoadDirection.Forward ? bez : bez.reverse();
+	// get bezier for lane
+	// TODO: it's actually impossible to create accurate beziers relative to other beziers!
+	// probably should use center bezier and eval_offset, but the math to get correct derivative and curvature might be hard or impossible
+	public OffsetBezier calc_path (RoadDirection dir, float3 offset) {
+		var offs_bez = bezier.offset(offset);
+		return dir == RoadDirection.Forward ? offs_bez : offs_bez.reverse();
 	}
-	
-	public static int _counter = 0;
-	public static Road create (Road prefab, Junction a, Junction b) {
-		var road = Instantiate(prefab, g.entities.roads_go.transform);
-		road.name = $"Road #{_counter++}";
-
-		road.junc_a = a;
-		road.junc_b = b;
-
-		a.connect_road(road);
-		b.connect_road(road);
-		return road;
+	public OffsetBezier calc_path (Lane lane) {
+		return calc_path(lane.dir, float3(lane.shift, lane.height, 0));
 	}
 
-	public void refresh (bool reset=false) {
-		if (reset) {
-			pos_a = junc_a.position;
-			pos_b = junc_b.position;
-
-			float3 dir = normalizesafe(pos_b - pos_a);
-
-			pos_a += dir * junc_a._radius;
-			pos_b -= dir * junc_b._radius;
-		}
-
-		transform.position = (pos_a + pos_b) * 0.5f + float3(0, 0.01f, 0);
-		transform.rotation = Quaternion.LookRotation(pos_b - pos_a);
-		transform.localScale = float3(width / 10.0f, 1, length / 10.0f); // unity plane mesh size 10
-	}
-
-	// TODO: rework this
-	public struct EndInfo {
-	public float3 pos;
-	public float3 forw;
-		public float3 right;
-	}
-	public EndInfo get_end_info (RoadDirection dir, float2 shiftXY) {
-		EndInfo i;
-		if (dir == RoadDirection.Forward) {
-			i.pos = pos_b;
-			i.forw = normalizesafe(pos_b - pos_a);
-		}
-		else {
-			i.pos = pos_a;
-			i.forw = normalizesafe(pos_a - pos_b);
-		}
-		i.right = MyMath.rotate90_right(i.forw);
-		i.pos += i.right * shiftXY.x;
-		i.pos.z += shiftXY.y;
-		return i;
-	}
-	public EndInfo get_end_info (Junction junc, float2 shiftXY) {
-		return get_end_info(get_dir_to_junc(junc), shiftXY);
-	}
-
-
+//// Vis
 	private void OnDrawGizmosSelected () {
+		var bounds = GetComponent<MeshRenderer>().bounds;
+		Gizmos.color = Color.red;
+		Gizmos.DrawWireCube(bounds.center, bounds.size);
+
+		Gizmos.color = Color.red;
+		bezier.debugdraw();
+
 		foreach (var lane in lanes) {
 			Gizmos.color = lane.dir == RoadDirection.Forward ? Color.yellow : Color.blue;
-			get_lane_path(lane).debugdraw();
+			calc_path(lane).debugdraw();
 		}
 	}
 }
 
 public enum RoadDirection : byte { Forward, Backward }
+
+public struct RoadLane {
+	public Road road;
+	public Road.Lane lane;
+
+	public RoadLane (Road road, Road.Lane lane) {
+		this.road = road;
+		this.lane = lane;
+	}
+}

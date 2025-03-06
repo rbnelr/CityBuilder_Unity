@@ -16,6 +16,9 @@ public struct Bezier {
 	public static Bezier from_line (float3 a, float3 b) {
 		return new Bezier(a, lerp(a,b,0.333333f), lerp(a,b,0.666667f), b);
 	}
+	public Bezier reverse () {
+		return new Bezier(d,c,b,a);
+	}
 
 	public struct PosVel {
 		public float3 pos;
@@ -32,26 +35,32 @@ public struct Bezier {
 		
 		float3 value = c3*t3     + c2*t2    + c1*t + c0; // f(t)
 		float3 deriv = c3*(t2*3) + c2*(t*2) + c1;        // f'(t)
+		//float3 accel = c3*(t*6)  + c2*2;                 // f''(t)
+		
+		//float denom = deriv.x*deriv.x + deriv.y*deriv.y;
+		//float curv = 0;
+		//if (denom >= 0.0001f) // curv not defined if deriv=0, which happens if a==b for example
+		//	curv = (deriv.x*accel.y - accel.x*deriv.y) / (denom * sqrt(denom)); // denom^(3/2)
 		
 		return new PosVel { pos=value, vel=deriv };
 	}
-	
-	public void debugdraw (int res=10) {
-		float3 prev = a;
 
-		for (int i=0; i<res; i++) {
-			float t = (float)(i+1) * (1.0f / res);
-			float3 pos = eval(t).pos;
+	public struct OffsetPoint {
+		public float3 pos;
+		public float3 forw;
+	}
+	public OffsetPoint eval_offset (float t, float3 offset) {
+		var res = eval(t);
+		var mat = rotate_to_direction(res.vel);
 
-			if (i < res-1) Gizmos.DrawLine(prev, pos);
-			else           Util.GizmosDrawArrow(prev, pos-prev, 1);
-
-			prev = pos;
-		}
+		return new OffsetPoint {
+			pos = res.pos + mul(mat, offset),
+			forw = mul(mat, float3(0,0,1))
+		};
 	}
 
-	public Bezier reverse () {
-		return new Bezier(d,c,b,a);
+	public OffsetBezier offset (float3 offset) {
+		return new OffsetBezier { bez = this, offset = offset };
 	}
 	
 	public float approx_len (int res=10) {
@@ -61,6 +70,21 @@ public struct Bezier {
 		for (int i=0; i<res; ++i) {
 			float t = (float)(i+1) * (1.0f / res);
 			float3 pos = eval(t).pos;
+
+			len += length(pos - prev);
+
+			prev = pos;
+		}
+
+		return len;
+	}
+	public float approx_len (float3 offset, int res=10) {
+		float3 prev = eval_offset(0, offset).pos;
+
+		float len = 0;
+		for (int i=0; i<res; ++i) {
+			float t = (float)(i+1) * (1.0f / res);
+			float3 pos = eval_offset(t, offset).pos;
 
 			len += length(pos - prev);
 
@@ -110,7 +134,7 @@ public struct Bezier {
 		up = normalize(cross(forw, right));
 		right = normalize(right);
 	
-		// unlike hlsl float3x3 takes columns already!
+		// unlike hlsl, unity mathematics float3x3 takes columns already!
 		return float3x3(right, up, forw);
 	}
 	// TODO: seperate t?
@@ -135,8 +159,56 @@ public struct Bezier {
 		norm_out = mul(rotate_to_bezier, norm_obj);
 		tang_out = mul(rotate_to_bezier, tang_obj);
 	}
-	public float3 follow_curve (float t, float3 pos) {
-		var res = eval(t);
-		return res.pos + mul(rotate_to_direction(res.vel), pos);
+	
+	public void debugdraw (int res=10) {
+		float3 prev = a;
+
+		for (int i=0; i<res; i++) {
+			float t = (float)(i+1) * (1.0f / res);
+			float3 pos = eval(t).pos;
+
+			if (i < res-1) Gizmos.DrawLine(prev, pos);
+			else           Util.GizmosDrawArrow(prev, pos-prev, 1);
+
+			prev = pos;
+		}
+	}
+
+	public void debugdraw (float3 offset, int res=10) {
+		float3 prev = eval_offset(0, offset).pos;
+
+		for (int i=0; i<res; i++) {
+			float t = (float)(i+1) * (1.0f / res);
+			float3 pos = eval_offset(t, offset).pos;
+
+			if (i < res-1) Gizmos.DrawLine(prev, pos);
+			else           Util.GizmosDrawArrow(prev, pos-prev, 1);
+
+			prev = pos;
+		}
+	}
+}
+public struct OffsetBezier {
+	public Bezier bez;
+	public float3 offset;
+
+	public Bezier.OffsetPoint eval (float t) {
+		return bez.eval_offset(t, offset);
+	}
+	
+	// reverse bezier and offset X (right) & Z (forward)
+	public OffsetBezier reverse () {
+		return new OffsetBezier {
+			bez = new Bezier(bez.d,bez.c,bez.b,bez.a),
+			offset = float3(-offset.x, offset.y, -offset.z)
+		};
+	}
+
+	public float approx_len (int res=10) {
+		return bez.approx_len(offset, res);
+	}
+
+	public void debugdraw (int res=10) {
+		bez.debugdraw(offset, res);
 	}
 }

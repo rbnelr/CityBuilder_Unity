@@ -228,3 +228,16 @@ public class LogarithmicRangeAttribute : PropertyAttribute {
 		this.power = power;
 	}
 }
+
+public class DebugVis {
+	public static void DebugCurvedMeshNormals (Bezier bez, Mesh mesh, Transform transform) {
+
+		DebugMeshNormals.DrawOnGizmos(mesh, transform.localToWorldMatrix, 0.25f,
+			v => {
+				var ret = new DebugMeshNormals.Vertex();
+				bez.curve_mesh(v.position, v.normal, v.tangent,
+					out ret.position, out ret.normal, out ret.tangent);
+				return ret;
+			});
+	}
+}
