@@ -118,6 +118,29 @@ public static class MyMath {
 		return float3(v.z, v.y, -v.x);
 	}
 
+	// wrap x into range [0,range)
+	// negative x wrap back to +range unlike c++ % operator
+	// negative range supported
+	public static int wrap (int x, int range) {
+		int modded = x % range;
+		if (range > 0) {
+			if (modded < 0) modded += range;
+		} else {
+			if (modded > 0) modded += range;
+		}
+		return modded;
+	}
+	
+	// wrap x into [a,b) range
+	public static int wrap (int x, int a, int b) {
+		x -= a;
+		int range = b -a;
+		
+		int modulo = wrap(x, range);
+		
+		return modulo + a;
+	}
+
 //// Intersection
 	public static bool line_line_intersect (float2 a, float2 ab, float2 c, float2 cd, out float2 out_point) {
 		out_point = 0;
