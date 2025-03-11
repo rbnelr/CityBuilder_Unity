@@ -96,22 +96,34 @@ public class GameCamera : MonoBehaviour {
 
 	static float2 get_WASD () { // unnormalized
 		float2 dir = 0;
-		dir.y += Keyboard.current.sKey.isPressed ? -1.0f : 0.0f;
-		dir.y += Keyboard.current.wKey.isPressed ? +1.0f : 0.0f;
-		dir.x += Keyboard.current.aKey.isPressed ? -1.0f : 0.0f;
-		dir.x += Keyboard.current.dKey.isPressed ? +1.0f : 0.0f;
+		dir.y -= Keyboard.current.sKey.isPressed ? 1:0;
+		dir.y += Keyboard.current.wKey.isPressed ? 1:0;
+		dir.x -= Keyboard.current.aKey.isPressed ? 1:0;
+		dir.x += Keyboard.current.dKey.isPressed ? 1:0;
 		return dir;
 	}
 	static float get_QE () {
 		float val = 0;
-		val += Keyboard.current.qKey.isPressed ? -1.0f : 0.0f;
-		val += Keyboard.current.eKey.isPressed ? +1.0f : 0.0f;
+		val -= Keyboard.current.qKey.isPressed ? 1:0;
+		val += Keyboard.current.eKey.isPressed ? 1:0;
 		return val;
 	}
-	static float get_PlusMinus () {
+	static float get_zoom_gamepad () {
 		float val = 0;
-		val += Keyboard.current.numpadMinusKey.isPressed ? -1.0f : 0.0f;
-		val += Keyboard.current.numpadPlusKey.isPressed ? +1.0f : 0.0f;
+		val -= Gamepad.current?.rightShoulder.ReadValue() ?? 0;
+		val += Gamepad.current?.rightTrigger.ReadValue() ?? 0;
+		return val;
+	}
+	static float get_keyboard_zoom () {
+		float val = 0;
+		val -= Keyboard.current.numpadMinusKey.isPressed ? 1:0;
+		val += Keyboard.current.numpadPlusKey.isPressed ? 1:0;
+		return val;
+	}
+
+	static float get_zoom_input () {
+		float val = get_keyboard_zoom();
+		if (val == 0.0f) val = get_zoom_gamepad();
 		return val;
 	}
 	
@@ -135,10 +147,10 @@ public class GameCamera : MonoBehaviour {
 	static float2 get_left_stick () => Gamepad.current?.leftStick.ReadValue() ?? float2(0);
 	static float2 get_right_stick () => Gamepad.current?.rightStick.ReadValue() ?? float2(0);
 	static float get_gamepad_up_down () {
-		float value = 0;
-		value += Gamepad.current?.leftShoulder.ReadValue() ?? 0;
-		value -= Gamepad.current?.leftTrigger.ReadValue() ?? 0;
-		return value;
+		float val = 0;
+		val += Gamepad.current?.leftShoulder.ReadValue() ?? 0;
+		val -= Gamepad.current?.leftTrigger.ReadValue() ?? 0;
+		return val;
 	}
 
 	float2 get_look_delta () {
@@ -176,7 +188,7 @@ public class GameCamera : MonoBehaviour {
 
 	void camera_zoom_or_fov () {
 		if (!change_fov) { // scroll changes zoom
-			float delta = get_PlusMinus() * 16 * Time.unscaledDeltaTime;
+			float delta = get_zoom_input() * 16 * Time.unscaledDeltaTime;
 			delta += scroll_delta;
 
 			float log = log2(zoom_target);
