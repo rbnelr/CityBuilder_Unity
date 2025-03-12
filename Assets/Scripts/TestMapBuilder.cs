@@ -75,7 +75,7 @@ public class TestMapBuilder : MonoBehaviour {
 			var junc = Junction.create();
 			junc.position = base_pos + float3(x, 0, y) * float3(spacing, 0, spacing);
 		
-			bool big_intersec = (x-5) % 10 == 0 && (y-5) % 10 == 0;
+			//bool big_intersec = (x-5) % 10 == 0 && (y-5) % 10 == 0;
 			//node->_fully_dedicated_turns = big_intersec;
 
 			junctions.Add(int2(x,y), junc);
@@ -121,8 +121,8 @@ public class TestMapBuilder : MonoBehaviour {
 			}
 
 			float3 road_center = (float3(x,0,y) + float3(0.5f,0,0)) * float3(spacing,0,spacing);
-			float roadL = conn_seg.edgeL;
-			float roadR = conn_seg.edgeR;
+			float roadL = conn_seg.asset.edgeL;
+			float roadR = conn_seg.asset.edgeR;
 			
 			float3 building_size = float3(16, 16, 7); // TODO
 

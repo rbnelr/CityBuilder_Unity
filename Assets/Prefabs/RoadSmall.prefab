@@ -9,7 +9,15 @@ PrefabInstance:
     m_TransformParent: {fileID: 0}
     m_Modifications:
     - target: {fileID: 4187059198201830957, guid: 900163911d743eb4bb961d976aa6b224, type: 3}
+      propertyPath: asset.width
+      value: 12
+      objectReference: {fileID: 0}
+    - target: {fileID: 4187059198201830957, guid: 900163911d743eb4bb961d976aa6b224, type: 3}
       propertyPath: lanes.Array.size
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 4187059198201830957, guid: 900163911d743eb4bb961d976aa6b224, type: 3}
+      propertyPath: asset.lanes.Array.size
       value: 2
       objectReference: {fileID: 0}
     - target: {fileID: 4187059198201830957, guid: 900163911d743eb4bb961d976aa6b224, type: 3}
@@ -22,6 +30,18 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4187059198201830957, guid: 900163911d743eb4bb961d976aa6b224, type: 3}
       propertyPath: lanes.Array.data[1].shift
+      value: -2
+      objectReference: {fileID: 0}
+    - target: {fileID: 4187059198201830957, guid: 900163911d743eb4bb961d976aa6b224, type: 3}
+      propertyPath: asset.lanes.Array.data[1].dir
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 4187059198201830957, guid: 900163911d743eb4bb961d976aa6b224, type: 3}
+      propertyPath: asset.lanes.Array.data[0].shift
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 4187059198201830957, guid: 900163911d743eb4bb961d976aa6b224, type: 3}
+      propertyPath: asset.lanes.Array.data[1].shift
       value: -2
       objectReference: {fileID: 0}
     - target: {fileID: 4305928698960345929, guid: 900163911d743eb4bb961d976aa6b224, type: 3}

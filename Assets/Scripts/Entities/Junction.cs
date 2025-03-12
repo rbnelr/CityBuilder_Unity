@@ -22,6 +22,9 @@ public class Junction : MonoBehaviour {
 	//[NonSerialized] public int _q_idx;
 	[NonSerialized] public Junction _pred;
 	[NonSerialized] public Road _pred_road;
+
+	[Range(0,1)]
+	public float test_curv = 0.6667f;
 	
 	static int _counter = 0;
 	public void set_name (string custom_name=null) {
@@ -79,14 +82,14 @@ public class Junction : MonoBehaviour {
 		sort_roads();
 
 		foreach (var r in roads) {
-			_radius = max(_radius, r.width/2);
+			_radius = max(_radius, r.asset.width/2);
 		}
 
 		GetComponent<SphereCollider>().radius = _radius;
 
 		if (refresh_roads) {
 			foreach (var r in roads) {
-				r.reset_endpoint(this);
+				RoadGeometry.reset_endpoint(r, this);
 			}
 
 			foreach (var r in roads) {
@@ -107,49 +110,6 @@ public class Junction : MonoBehaviour {
 		}
 	}
 	
-	public Bezier calc_curve (Road road0, Road road1) {
-		var dir0 = road0.get_dir_to_junc(this);
-		var dir1 = road1.get_dir_from_junc(this);
-
-		var p0 = road0.calc_path(dir0, 0).eval(1);
-		var p1 = road1.calc_path(dir1, 0).eval(0);
-		return calc_curve(p0, p1);
-	}
-	public Bezier calc_curve (RoadLane lane0, RoadLane lane1) {
-		var p0 = lane0.road.calc_path(lane0.lane).eval(1);
-		var p1 = lane1.road.calc_path(lane1.lane).eval(0);
-		return calc_curve(p0, p1);
-	}
-
-	public Bezier calc_curve (Bezier.OffsetPoint p0, Bezier.OffsetPoint p1) {
-
-		float3 ctrl_in, ctrl_out;
-		// Find straight line intersection of in/out lanes with their tangents
-		if (MyMath.line_line_intersect(p0.pos.xz, p0.forw.xz, p1.pos.xz, -p1.forw.xz, out float2 point)) {
-			ctrl_in  = float3(point.x, p0.pos.y, point.y);
-			ctrl_out = float3(point.x, p1.pos.y, point.y);
-		}
-		// Come up with seperate control points TODO: how reasonable is this?
-		else {
-			float dist = distance(p0.pos, p1.pos) * 0.5f;
-			ctrl_in  = p0.pos + float3(p0.forw.x, 0, p0.forw.z) * dist;
-			ctrl_out = p1.pos - float3(p1.forw.x, 0, p1.forw.z) * dist;
-		}
-
-		// NOTE: for quarter circle turns k=0.5539 would result in almost exactly a quarter circle!
-		// https://pomax.github.io/bezierinfo/#circles_cubic
-		// but turns that are sharper in the middle are more realistic, but we could make this customizable?
-		float k = 0.6667f;
-
-		Bezier bez = new Bezier(
-			p0.pos,
-			lerp(p0.pos, ctrl_in , k),
-			lerp(p1.pos, ctrl_out, k),
-			p1.pos
-		);
-		return bez;
-	}
-	
 	public IEnumerable<(Road, Road)> road_connections_without_uturn () {
 		foreach (var i in roads) {
 			foreach (var o in roads) {
@@ -162,7 +122,7 @@ public class Junction : MonoBehaviour {
 		foreach (var (i,o) in road_connections_without_uturn()) {
 			foreach (var il in i.lanes_to_junc(this)) {
 				foreach (var ol in o.lanes_from_junc(this)) {
-					yield return (new RoadLane(i,il), new RoadLane(o,ol));
+					yield return (il, ol);
 				}
 			}
 		}
@@ -183,9 +143,18 @@ public class Junction : MonoBehaviour {
 		Array.Sort(roads, compareer);
 	}
 
+	public (Road left, Road right) find_neighbours (Road road) {
+		var road_idx = Array.IndexOf(roads, road);
+		if (road_idx < 0) return (null, null);
+		return (
+			left:  roads[MyMath.wrap(road_idx-1, roads.Length)],
+			right: roads[MyMath.wrap(road_idx+1, roads.Length)]
+		);
+	}
+
 	private void OnDrawGizmosSelected () {
 		foreach (var (i,o) in lane_connections_without_uturn()) {
-			var bez = calc_curve(i,o);
+			var bez = RoadGeometry.calc_curve(this, i,o);
 			bez.debugdraw();
 		}
 	}

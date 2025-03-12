@@ -26,7 +26,7 @@ public class DebugMeshNormals : MonoBehaviour {
 			float3 norm = normals[i];
 			float4 tang = tangents[i];
 			
-			float3 bitang = cross(norm, tang.xyz) * tang.w;
+			float3 bitang = tang.w * cross(norm, tang.xyz);
 
 			Gizmos.color = Color.blue;
 			Gizmos.DrawLine(pos, pos + norm * line_length);

@@ -70,10 +70,7 @@ public class Vehicle : MonoBehaviour {
 		}
 	}
 	// TODO: split lanes by direction by default so this becomes unneeded
-	static RoadLane pick_lane (Road road, RoadDirection dir) {
-		var lane = rand.Pick(road.lanes.Where(x => x.dir == dir).ToArray());
-		return new RoadLane(road, lane);
-	}
+	static RoadLane pick_lane (Road road, RoadDirection dir) => rand.Pick(road.lanes_in_dir(dir).ToArray());
 
 	static float3 parking_spot (Building b) => b.transform.TransformPoint(float3(0, 0, 8));
 
@@ -83,7 +80,7 @@ public class Vehicle : MonoBehaviour {
 		var cur_lane = pick_lane(path[0], get_road_dir(0));
 
 		{ // building -> first lane
-			float3 point = cur_lane.road.calc_path(cur_lane.lane).eval(0).pos;
+			float3 point = cur_lane.road.calc_path(cur_lane).eval(0).pos;
 			// avoid the need for bezier here? simply have vehicle drive to target point?
 			var bezier = Bezier.from_line(parking_spot(start_building), point);
 			yield return new Motion {
@@ -95,7 +92,7 @@ public class Vehicle : MonoBehaviour {
 
 		for (_path_idx = 0; _path_idx < path.Length; _path_idx++) {
 			{ //// Road
-				var bezier = cur_lane.road.calc_path(cur_lane.lane);
+				var bezier = cur_lane.road.calc_path(cur_lane);
 
 				yield return new Motion {
 					bezier = bezier,
@@ -112,7 +109,7 @@ public class Vehicle : MonoBehaviour {
 			{ //// Junction
 
 				var junc = Junction.between(cur_lane.road, next_lane.road);
-				var bezier = junc.calc_curve(cur_lane, next_lane);
+				var bezier = RoadGeometry.calc_curve(junc, cur_lane, next_lane);
 
 				yield return new Motion {
 					bezier = bezier.offset(0),
@@ -125,7 +122,7 @@ public class Vehicle : MonoBehaviour {
 		}
 
 		{ // last lane -> building
-			float3 point = cur_lane.road.calc_path(cur_lane.lane).eval(1).pos;
+			float3 point = cur_lane.road.calc_path(cur_lane).eval(1).pos;
 
 			var bezier = Bezier.from_line(point, parking_spot(target_building));
 			yield return new Motion {

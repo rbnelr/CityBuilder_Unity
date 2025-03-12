@@ -30,21 +30,29 @@ float3x3 rotate_to_direction (float3 forw) {
 	return transpose(float3x3(right, up, forw));
 }
 
+void scale_mesh (float4 transfX, inout float3 pos, inout float3 norm, inout float3 tang) {
+	
+	const float base_length = 20;
+	
+	// fix X and Z being flipped when importing mesh here
+	pos  *= float3(-1,1,-1 / base_length);
+	norm *= float3(-1,1,-1);
+	tang *= float3(-1,1,-1);
+	
+	float scale = pos.x <= 0.0f ? transfX.x : transfX.y;
+	float offs  = pos.x <= 0.0f ? transfX.z : transfX.w;
+	pos.x = pos.x * scale + offs;
+}
+
 // curve mesh along a bezier
 // transform obj space to world or curved obj space depending on if bezier points (a,b,c,d) are in world or in obj space
-void curve_mesh (float3 a, float3 b, float3 c, float3 d,
-		float3 pos_obj, float3 norm_obj, float3 tang_obj,
-		out float3 pos_out, out float3 norm_out, out float3 tang_out) {
+void curve_mesh (float3 a, float3 b, float3 c, float3 d, inout float3 pos, inout float3 norm, inout float3 tang) {
 	// NOTE: distorting/extruding the mesh along a bezier like this results in technically not-correct normals
 	// while the normals are curved correctly, the mesh is streched/squashed along the length of the bezier
 	// so any normals pointing forwards or backwards relative to the bezier, will be wrong, just like a sphere scaled on one axis will have wrong normals
 	// it might be possible to fix this based on an estimate of streching along this axis?
 	
-	// fix X and Z being flipped when importing mesh here
-	pos_obj *= float3(-1,1,-1 / 20.0f); // mesh currently 20 units long
-	norm_obj *= float3(-1,1,-1);
-	tang_obj *= float3(-1,1,-1);
-	float t = pos_obj.z;
+	float t = pos.z;
 	
 	float3 bez_pos;
 	float3 bez_vel;
@@ -52,41 +60,47 @@ void curve_mesh (float3 a, float3 b, float3 c, float3 d,
 	
 	float3x3 rotate_to_bezier = rotate_to_direction(bez_vel);
 	
-	pos_out = bez_pos + mul(rotate_to_bezier, float3(pos_obj.xy,0));
-	norm_out = mul(rotate_to_bezier, norm_obj);
-	tang_out = mul(rotate_to_bezier, tang_obj);
+	pos = bez_pos + mul(rotate_to_bezier, float3(pos.xy,0));
+	norm = mul(rotate_to_bezier, norm);
+	tang = mul(rotate_to_bezier, tang);
 }
 
-void mesh_road_float (float3 a, float3 b, float3 c, float3 d,
-		float3 pos_obj, float3 norm_obj, float3 tang_obj,
+void mesh_road_float (
+		float4 transfX,
+		float3 a, float3 b, float3 c, float3 d,
+		float3 pos, float3 norm, float3 tang,
 		out float3 pos_out, out float3 norm_out, out float3 tang_out) {
-	curve_mesh(a,b,c,d, pos_obj, norm_obj, tang_obj,
-		pos_out, norm_out, tang_out);
+	
+	scale_mesh(transfX, pos, norm, tang);
+	curve_mesh(a,b,c,d, pos, norm, tang);
+	
+	pos_out = pos;
+	norm_out = norm;
+	tang_out = tang;
 }
 
 void mesh_junction_float (
+		float4 transfX,
 		float3 La, float3 Lb, float3 Lc, float3 Ld,
 		float3 Ra, float3 Rb, float3 Rc, float3 Rd,
 		float3 junction_pos,
-		float3 pos_obj, float3 norm_obj, float3 tang_obj,
-		out float3 pos_out, out float3 norm_out, out float3 tang_out)
-{
+		float3 pos, float3 norm, float3 tang,
+		out float3 pos_out, out float3 norm_out, out float3 tang_out) {
 	
-	pos_obj *= float3(-1, 1, -1 / 20.0f);
-	norm_obj *= float3(-1, 1, -1);
-	tang_obj *= float3(-1, 1, -1);
-	float t = pos_obj.z * 0.5f; // [0,1] -> [0,0.5]
+	scale_mesh(transfX, pos, norm, tang);
+	
+	float t = pos.z * 0.5f; // [0,1] -> [0,0.5]
 	
 	float3 bez_pos;
 	float3 bez_vel;
-	if (abs(pos_obj.x) < 0.01f) {
+	if (abs(pos.x) < 0.01f) {
 		float3 line_pos = (La + Ra) * 0.5;
 		float3 line_dir = junction_pos - line_pos;
 		
 		bez_pos = line_pos + (line_dir * t*2.0);
 		bez_vel = line_dir;
 	}
-	else if (pos_obj.x < 0.0f) {
+	else if (pos.x < 0.0f) {
 		calc_bezier(La, Lb, Lc, Ld, t, bez_pos, bez_vel);
 	}
 	else {
@@ -95,9 +109,9 @@ void mesh_junction_float (
 
 	float3x3 rotate_to_bezier = rotate_to_direction(bez_vel);
 	
-	pos_out = bez_pos + mul(rotate_to_bezier, float3(pos_obj.xy,0));
-	norm_out = mul(rotate_to_bezier, norm_obj);
-	tang_out = mul(rotate_to_bezier, tang_obj);
+	pos_out = bez_pos + mul(rotate_to_bezier, float3(pos.xy,0));
+	norm_out = mul(rotate_to_bezier, norm);
+	tang_out = mul(rotate_to_bezier, tang);
 }
 
 //// SDF join: shape A AND shape B

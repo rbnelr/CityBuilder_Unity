@@ -12,9 +12,22 @@ public struct Bezier {
 		this.c = c;
 		this.d = d;
 	}
+	
+	// NOTE: for quarter circle turns k=0.5539 results in almost exactly a quarter circle!
+	// https://pomax.github.io/bezierinfo/#circles_cubic
+	public const float circle_k = 0.5539f;
 
 	public static Bezier from_line (float3 a, float3 b) {
 		return new Bezier(a, lerp(a,b,0.333333f), lerp(a,b,0.666667f), b);
+	}
+	public static Bezier from_quarter_circle (float3 start, float3 forw, float3 center) {
+		float3 center2start = start - center;
+		float radius = length(center2start);
+		float3 a = start;
+		float3 b = start + forw * radius * circle_k;
+		float3 c = center + center2start * circle_k;
+		float3 d = center + forw * radius;
+		return new Bezier(a,b,c,d);
 	}
 	public Bezier reverse () {
 		return new Bezier(d,c,b,a);

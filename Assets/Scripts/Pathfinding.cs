@@ -70,13 +70,13 @@ public class Pathfinding : MonoBehaviour {
 
 		//if (start.forw) {
 		{
-			start.junc1._cost = (start.length_for_pathfinding * 0.5f) / start.speed_limit;
+			start.junc1._cost = (start.length_for_pathfinding * 0.5f) / start.asset.speed_limit;
 			start.junc1._pred_road = start;
 			unvisited.Enqueue(start.junc1, start.junc1._cost);
 		}
 		//if (start.backw) {
 		{
-			start.junc0._cost = (start.length_for_pathfinding * 0.5f) / start.speed_limit;
+			start.junc0._cost = (start.length_for_pathfinding * 0.5f) / start.asset.speed_limit;
 			start.junc0._pred_road = start;
 			unvisited.Enqueue(start.junc0, start.junc0._cost);
 		}
@@ -124,7 +124,7 @@ public class Pathfinding : MonoBehaviour {
 					//}
 
 					float len = road.length_for_pathfinding + road.junc0._radius + road.junc1._radius;
-					float cost = len / road.speed_limit;
+					float cost = len / road.asset.speed_limit;
 					Debug.Assert(cost > 0);
 
 					float new_cost = cur_cost + cost;
@@ -149,8 +149,8 @@ public class Pathfinding : MonoBehaviour {
 		float dist_from_b = 0.5f;
 
 		Junction end_node = null;
-		float a_cost = dest.junc0._cost + dist_from_a / dest.speed_limit;
-		float b_cost = dest.junc1._cost + dist_from_b / dest.speed_limit;
+		float a_cost = dest.junc0._cost + dist_from_a / dest.asset.speed_limit;
+		float b_cost = dest.junc1._cost + dist_from_b / dest.asset.speed_limit;
 
 		// do not count final node if coming from dest segment, to correctly handle start == dest
 		if (dest.junc0._pred_road && dest.junc0._pred_road != dest) {
