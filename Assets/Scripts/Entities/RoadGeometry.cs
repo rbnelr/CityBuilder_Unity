@@ -7,70 +7,74 @@ using static Unity.Mathematics.math;
 
 public class RoadGeometry {
 	
-	
-	
 	public static Bezier calc_curve (Junction junc, Road road0, Road road1) {
 		var dir0 = road0.get_dir_to_junc(junc);
 		var dir1 = road1.get_dir_from_junc(junc);
 
 		var p0 = road0.calc_path(dir0, 0).eval(1);
 		var p1 = road1.calc_path(dir1, 0).eval(0);
-		return calc_curve(junc, p0, p1);
+		return calc_curve(p0.pos, p0.forw, p1.pos, p1.forw, junc.test_curv);
 	}
 	public static Bezier calc_curve (Junction junc, RoadLane lane0, RoadLane lane1) {
 		var p0 = lane0.road.calc_path(lane0).eval(1);
 		var p1 = lane1.road.calc_path(lane1).eval(0);
-		return calc_curve(junc, p0, p1);
+		return calc_curve(p0.pos, p0.forw, p1.pos, p1.forw, junc.test_curv);
 	}
-	public static Bezier calc_curve (Junction junc, Bezier.OffsetPoint p0, Bezier.OffsetPoint p1) {
+	public static Bezier calc_curve (float3 pos0, float3 dir0, float3 pos1, float3 dir1, float curve_k=0.6667f) {
+		
+		Debug.DrawLine(pos0, pos0+dir0, Color.magenta);
+		Debug.DrawLine(pos1, pos1+dir1, Color.magenta);
 
 		float3 ctrl_in, ctrl_out;
 		// Find straight line intersection of in/out lanes with their tangents
-		if (MyMath.line_line_intersect(p0.pos.xz, p0.forw.xz, p1.pos.xz, -p1.forw.xz, out float2 point)) {
-			ctrl_in  = float3(point.x, p0.pos.y, point.y);
-			ctrl_out = float3(point.x, p1.pos.y, point.y);
+		if (MyMath.line_line_intersect(pos0.xz, dir0.xz, pos1.xz, -dir1.xz, out float2 point)) {
+			Debug.DrawLine(float3(point.x, 0, point.y), float3(point.x, 1, point.y), Color.yellow);
+
+			ctrl_in  = float3(point.x, pos0.y, point.y);
+			ctrl_out = float3(point.x, pos1.y, point.y);
 		}
 		// Come up with seperate control points TODO: how reasonable is this?
 		else {
-			float dist = distance(p0.pos, p1.pos) * 0.5f;
-			ctrl_in  = p0.pos + float3(p0.forw.x, 0, p0.forw.z) * dist;
-			ctrl_out = p1.pos - float3(p1.forw.x, 0, p1.forw.z) * dist;
+			float dist = distance(pos0, pos1) * 0.5f;
+			ctrl_in  = pos0 + float3(dir0.x, 0, dir0.z) * dist;
+			ctrl_out = pos1 - float3(dir1.x, 0, dir1.z) * dist;
 		}
 
 		// NOTE: for quarter circle turns k=0.5539 would result in almost exactly a quarter circle!
 		// https://pomax.github.io/bezierinfo/#circles_cubic
 		// but turns that are sharper in the middle are more realistic, but we could make this customizable?
-		//float k = 0.6667f;
-		float k = junc.test_curv;
+		//float curve_k = 0.6667f;
 
 		Bezier bez = new Bezier(
-			p0.pos,
-			lerp(p0.pos, ctrl_in , k),
-			lerp(p1.pos, ctrl_out, k),
-			p1.pos
+			pos0,
+			lerp(pos0, ctrl_in , curve_k),
+			lerp(pos1, ctrl_out, curve_k),
+			pos1
 		);
 		return bez;
 	}
 
-	//public void reset_endpoint (Junction junc) {
-	//	if (junc.roads.Length <= 1) {
-	//		if (junc == junc0) pos0 = junc.position;
-	//		else               pos1 = junc.position;
-	//		return;
-	//	}
-	//
-	//	float additional_radius = 1;
-	//	
-	//	//float max_dist = distance(junc0.position, junc1.position) * 0.5f;
-	//	float max_dist = distance(junc0.position, junc1.position) * 0.5f;
-	//	float min_dist = junc._radius + additional_radius;
-	//	float dist = min(min_dist, max_dist);
-	//	
-	//	{
-	//		if (junc == junc0) pos0 = junc.position + dist * normalizesafe(tangent0);
-	//		else               pos1 = junc.position + dist * normalizesafe(tangent1);
-	//	}
-	//}
+	/*
+	public void reset_endpoint (Junction junc) {
+		if (junc.roads.Length <= 1) {
+			if (junc == junc0) pos0 = junc.position;
+			else               pos1 = junc.position;
+			return;
+		}
+	
+		float additional_radius = 1;
+		
+		//float max_dist = distance(junc0.position, junc1.position) * 0.5f;
+		float max_dist = distance(junc0.position, junc1.position) * 0.5f;
+		float min_dist = junc._radius + additional_radius;
+		float dist = min(min_dist, max_dist);
+		
+		{
+			if (junc == junc0) pos0 = junc.position + dist * normalizesafe(tangent0);
+			else               pos1 = junc.position + dist * normalizesafe(tangent1);
+		}
+	}
+	*/
 	
 	public static void reset_endpoint (Road road, Junction junc) {
 		if (junc.roads.Length <= 1) {

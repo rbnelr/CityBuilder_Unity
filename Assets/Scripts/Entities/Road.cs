@@ -103,10 +103,6 @@ public class Road : MonoBehaviour {
 		junc0.Refresh();
 		junc1.Refresh();
 
-		// TODO: fix that this is needed!
-		junc0.Refresh();
-		junc1.Refresh();
-
 		return road;
 	}
 
@@ -173,14 +169,17 @@ public class Road : MonoBehaviour {
 		refresh_bounds();
 	}
 
+	void set_mat_bez (Material mat, string name, Bezier bez) {
+		mat.SetVector($"{name}_A", (Vector3)bez.a);
+		mat.SetVector($"{name}_B", (Vector3)bez.b);
+		mat.SetVector($"{name}_C", (Vector3)bez.c);
+		mat.SetVector($"{name}_D", (Vector3)bez.d);
+	}
 	void refresh_main_mesh () {
 		float length = bezier.approx_len();
 
 		foreach (var m in render_materials) {
-			m.mat.SetVector("_BezierA", (Vector3)bezier.a);
-			m.mat.SetVector("_BezierB", (Vector3)bezier.b);
-			m.mat.SetVector("_BezierC", (Vector3)bezier.c);
-			m.mat.SetVector("_BezierD", (Vector3)bezier.d);
+			set_mat_bez(m.mat, "_Bezier", bezier);
 			
 			bool worldspace = m.mat.GetInt("_WorldspaceTextures") != 0;
 			
@@ -194,7 +193,6 @@ public class Road : MonoBehaviour {
 
 		float2 asph_scale = float2(-asset.sidewalkL, asset.sidewalkR) / base_asph_w;
 		float2 sidew_shift = float2(asset.sidewalkL, asset.sidewalkR) - float2(-base_asph_w, base_asph_w);
-		float2 sidew_scale = float2(asset.sidewalkL, asset.sidewalkR) - float2(-base_asph_w, base_asph_w);
 
 		render_materials[0].mat.SetVector("_TransfX", float4(asph_scale,0,0));
 		render_materials[1].mat.SetVector("_TransfX", float4(1,1,sidew_shift));
@@ -225,15 +223,8 @@ public class Road : MonoBehaviour {
 			float length = 0.5f * (lengthL + lengthR);
 
 			foreach (var m in render_materials) {
-				m.mat_junc[i].SetVector("_BezierL_A", (Vector3)bezL.a);
-				m.mat_junc[i].SetVector("_BezierL_B", (Vector3)bezL.b);
-				m.mat_junc[i].SetVector("_BezierL_C", (Vector3)bezL.c);
-				m.mat_junc[i].SetVector("_BezierL_D", (Vector3)bezL.d);
-
-				m.mat_junc[i].SetVector("_BezierR_A", (Vector3)bezR.a);
-				m.mat_junc[i].SetVector("_BezierR_B", (Vector3)bezR.b);
-				m.mat_junc[i].SetVector("_BezierR_C", (Vector3)bezR.c);
-				m.mat_junc[i].SetVector("_BezierR_D", (Vector3)bezR.d);
+				set_mat_bez(m.mat_junc[i], "_BezierL", bezL);
+				set_mat_bez(m.mat_junc[i], "_BezierR", bezR);
 				
 				m.mat_junc[i].SetVector("_JunctionCenter", (Vector3)junc.position);
 			

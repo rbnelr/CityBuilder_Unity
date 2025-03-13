@@ -140,6 +140,19 @@ public static class MyMath {
 		
 		return modulo + a;
 	}
+	
+	// Same as Quaternion.LookRotation?
+	public static float3x3 rotate_to_direction (float3 forw) {
+		forw = normalize(forw);
+		float3 up = float3(0,1,0);
+		float3 right = cross(up, forw);
+	
+		up = normalize(cross(forw, right));
+		right = normalize(right);
+	
+		// unlike hlsl, unity mathematics float3x3 takes columns already!
+		return float3x3(right, up, forw);
+	}
 
 //// Intersection
 	public static bool line_line_intersect (float2 a, float2 ab, float2 c, float2 cd, out float2 out_point) {

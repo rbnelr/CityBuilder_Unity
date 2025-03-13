@@ -136,7 +136,7 @@ float sdf_circle_outline (float2 pos, float radius, float outline_width) {
 	return sdf_difference(outer, inner);
 }
 
-float sdf_eval (float sdf, float4 col_inside, float4 col_outside) {
+float4 sdf_eval (float sdf, float4 col_inside, float4 col_outside) {
 	// 1 pixel antialias
 	sdf /= length(fwidth(sdf)); // delta sdf per pixel
 	return lerp(col_inside, col_outside, saturate(sdf));

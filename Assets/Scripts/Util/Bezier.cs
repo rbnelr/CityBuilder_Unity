@@ -17,6 +17,9 @@ public struct Bezier {
 	// https://pomax.github.io/bezierinfo/#circles_cubic
 	public const float circle_k = 0.5539f;
 
+	public Bezier reverse () {
+		return new Bezier(d,c,b,a);
+	}
 	public static Bezier from_line (float3 a, float3 b) {
 		return new Bezier(a, lerp(a,b,0.333333f), lerp(a,b,0.666667f), b);
 	}
@@ -28,9 +31,6 @@ public struct Bezier {
 		float3 c = center + center2start * circle_k;
 		float3 d = center + forw * radius;
 		return new Bezier(a,b,c,d);
-	}
-	public Bezier reverse () {
-		return new Bezier(d,c,b,a);
 	}
 
 	public struct PosVel {
@@ -64,7 +64,7 @@ public struct Bezier {
 	}
 	public OffsetPoint eval_offset (float t, float3 offset) {
 		var res = eval(t);
-		var mat = rotate_to_direction(res.vel);
+		var mat = MyMath.rotate_to_direction(res.vel);
 
 		return new OffsetPoint {
 			pos = res.pos + mul(mat, offset),
@@ -117,7 +117,7 @@ public struct Bezier {
 			float t = (float)i * (1.0f / res);
 
 			var bez_res = eval(t);
-			var mat = rotate_to_direction(bez_res.vel);
+			var mat = MyMath.rotate_to_direction(bez_res.vel);
 			var p0 = bez_res.pos + mul(mat, float3(x0, 0,0));
 			var p1 = bez_res.pos + mul(mat, float3(x1, 0,0));
 
@@ -138,18 +138,7 @@ public struct Bezier {
 		bounds.SetMinMax(lo, hi);
 		return bounds;
 	}
-	
-	static float3x3 rotate_to_direction (float3 forw) {
-		forw = normalize(forw);
-		float3 up = float3(0,1,0);
-		float3 right = cross(up, forw);
-	
-		up = normalize(cross(forw, right));
-		right = normalize(right);
-	
-		// unlike hlsl, unity mathematics float3x3 takes columns already!
-		return float3x3(right, up, forw);
-	}
+
 	// TODO: seperate t?
 	public void curve_mesh (float3 pos_obj, float3 norm_obj, float3 tang_obj,
 			out float3 pos_out, out float3 norm_out, out float3 tang_out) {
@@ -166,7 +155,7 @@ public struct Bezier {
 		
 		var res = eval(t);
 	
-		float3x3 rotate_to_bezier = rotate_to_direction(res.vel);
+		float3x3 rotate_to_bezier = MyMath.rotate_to_direction(res.vel);
 	
 		pos_out = res.pos + mul(rotate_to_bezier, float3(pos_obj.xy,0));
 		norm_out = mul(rotate_to_bezier, norm_obj);
@@ -193,6 +182,20 @@ public struct Bezier {
 		for (int i=0; i<res; i++) {
 			float t = (float)(i+1) * (1.0f / res);
 			float3 pos = eval_offset(t, offset).pos;
+
+			if (i < res-1) Gizmos.DrawLine(prev, pos);
+			else           Util.GizmosDrawArrow(prev, pos-prev, 1);
+
+			prev = pos;
+		}
+	}
+	public void debugdraw (float3 offset0, float3 offset1, int res=10) {
+		float3 prev = eval_offset(0, offset0).pos;
+
+		for (int i=0; i<res; i++) {
+			float t = (float)(i+1) * (1.0f / res);
+			float3 offs = lerp(offset0, offset1, t);
+			float3 pos = eval_offset(t, offs).pos;
 
 			if (i < res-1) Gizmos.DrawLine(prev, pos);
 			else           Util.GizmosDrawArrow(prev, pos-prev, 1);

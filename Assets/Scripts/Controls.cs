@@ -42,6 +42,9 @@ public class Controls : MonoBehaviour {
 		if (Keyboard.current.f2Key.wasPressedThisFrame) {
 			view_debug_camera = !view_debug_camera;
 		}
+		if (Keyboard.current.altKey.isPressed && Keyboard.current.enterKey.wasPressedThisFrame) {
+			Screen.fullScreen = !Screen.fullScreen;
+		}
 		if (debug_camera.gameObject.activeInHierarchy != view_debug_camera) { // if changed through button or through inspector
 
 			// toggle camera active state

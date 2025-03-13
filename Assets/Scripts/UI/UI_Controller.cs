@@ -13,8 +13,10 @@ public class UI_Controller : MonoBehaviour {
 	
 	VisualElement[] toolshelf_levels;
 	
-
-	private void Start () {
+	// UIDocument gets recreated on script reloads, so need to reinit everything
+	// TODO: UI is visible but stops reacting when reloading, fix?
+	// -> Note: looks like everything gets recreated correctly in create_ui()?
+	void OnEnable () {
 		doc = GetComponent<UIDocument>();
 
 		root_toolshelf.gameObject.SetActiveRecursivelyEx(false);
