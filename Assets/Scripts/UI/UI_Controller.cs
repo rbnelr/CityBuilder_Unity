@@ -6,6 +6,7 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.UIElements;
 
+[DefaultExecutionOrder(-300)]
 public class UI_Controller : MonoBehaviour {
 	public UIDocument doc { get; private set; }
 

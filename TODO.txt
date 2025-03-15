@@ -4,12 +4,10 @@
  -draw lane markings?
  -draw props?
  
--highlighting for junctions + roads in a basic or nice way
 -raycasting for junctions + roads
  -> fix render bounds for junctions!
  
 -add basic road building!
- -handling selection (in 'view' mode? or add a select tool?
  -bulldoze (junctions / roads) [DEL hotkey] -> bulldoze via click + bulldoze selection?
   -if nothing selected: bulldoze becomes toggle, press 'selects' and release confirms while allowing click drag to delete paths?
   -if selection: button is press button and pressing deletes current selection
@@ -21,3 +19,5 @@
  -port vehicles (and roads?) to ECS
  
 -fix tangents!
+
+-implement proper input consumption so inputs don't accidentally act twice

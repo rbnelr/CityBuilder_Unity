@@ -39,6 +39,11 @@ public class BuildRoadTool : UI_ButtonTool {
 	}
 
 	bool handle_back_action () {
+		if (Keyboard.current.escapeKey.wasPressedThisFrame) {
+			base.update();
+			return true;
+		}
+
 		// right click undoes current placement stage
 		if (back_button) {
 			if (stage > 0) {
