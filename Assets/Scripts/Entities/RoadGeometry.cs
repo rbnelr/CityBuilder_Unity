@@ -8,9 +8,9 @@ using UnityEditor;
 
 public class RoadGeometry {
 	
-	//public static Bezier calc_curve (Junction junc, Road road0, Road road1) {
-	//	return calc_curve(road0.endpoint(junc, 0), road1.endpoint(junc, 0), junc.test_curv);
-	//}
+	public static Bezier calc_curve (Junction junc, Road road0, Road road1) {
+		return calc_curve(road0.endpoint(junc, 0), road1.endpoint(junc, 0), junc.test_curv);
+	}
 	public static Bezier calc_curve (Junction junc, RoadLane lane0, RoadLane lane1) {
 		var p0 = lane0.road.endpoint(junc, lane0);
 		var p1 = lane1.road.endpoint(junc, lane1);
@@ -157,6 +157,23 @@ public class RoadGeometry {
 		m.SetRow(3, float4(bez.d, 0));
 		mat.SetMatrix(name, m);
 	}
+
+	public static float3 calc_junction_center_vertex (Junction junc) {
+		
+		float3 avg_pos = 0;
+		float  total = 0;
+		foreach (var i in junc.roads) {
+			foreach (var o in junc.roads) {
+				if (i == o) continue;
+				var bez = calc_curve(junc, i, o);
+				avg_pos += bez.eval(0.5f).pos;
+				total++;
+			}
+		}
+
+		avg_pos /= total;
+		return avg_pos;
+	}
 	
 	static void uv_tiling (Road.SubmeshMaterial m, Material rm, float lenL, float lenR) {
 		bool worldspace = rm.GetInt("_WorldspaceTextures") != 0;
@@ -272,7 +289,7 @@ public class RoadGeometry {
 			bezR0 = bezR0.subdiv(0.5f).first;
 			bezR1 = bezR1.subdiv(0.5f).first;
 
-			center = junc.position; // TODO: 
+			center = calc_junction_center_vertex(junc);
 		}
 
 		//if (junc.roads.Length > 0 && road == junc.roads[0]) {

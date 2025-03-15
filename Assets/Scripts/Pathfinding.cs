@@ -24,8 +24,6 @@ public class Pathfinding : MonoBehaviour {
 
 	TimedAverage path_avg = new();
 
-	//Junction[] _junctions;
-
 	public Road[] _pathfind (Road start, Road dest) {
 		// use dijkstra algorithm
 

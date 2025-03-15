@@ -94,6 +94,16 @@ void curve_mesh (Bezier bez, inout float3 pos, inout float3 norm, inout float3 t
 	tang = mul(rotate_to_bezier, tang);
 }*/
 
+void road_uv_map_float (float3 pos_obj, float3 pos_world, float2 uv, bool worldspace, float4 scale, float4 offset, out float2 out_uv) {
+	uv = worldspace ? pos_world.xz : uv;
+	
+	bool left = pos_obj.x > 0.0f;
+	uv *= left ? scale.xy : scale.zw;
+	uv += left ? offset.xy : offset.zw;
+	
+	out_uv = uv;
+}
+
 void mesh_road_float (float4x4 L0, float4x4 L1, float4x4 R0, float4x4 R1,
 		float3 pos, float3 norm, float3 tang, out float3 pos_out, out float3 norm_out, out float3 tang_out) {
 	
