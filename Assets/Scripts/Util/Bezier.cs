@@ -199,10 +199,10 @@ public struct Bezier {
 			prev = pos;
 		}
 
-		Debug.DrawRay(a, float3(0,1,0));
-		Debug.DrawRay(b, float3(0,1,0));
-		Debug.DrawRay(c, float3(0,1,0));
-		Debug.DrawRay(d, float3(0,1,0));
+		//Debug.DrawRay(a, float3(0,1,0));
+		//Debug.DrawRay(b, float3(0,1,0));
+		//Debug.DrawRay(c, float3(0,1,0));
+		//Debug.DrawRay(d, float3(0,1,0));
 	}
 
 	public void debugdraw (float3 offset, Color col, int res=10) {

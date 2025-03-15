@@ -16,6 +16,8 @@ public class Building : MonoBehaviour {
 	public static Building create (BuildingAsset asset) {
 		var building = Instantiate(asset.instance_prefab, g.entities.buildings_go.transform).GetComponent<Building>();
 		building.name = $"Building #{_counter++}";
+
+		g.entities.buildings.add(building);
 		return building;
 	}
 }

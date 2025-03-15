@@ -14,6 +14,7 @@ public class Selection {
 	public Color selected_highl_tint;
 
 	ButtonControl select_button => Mouse.current.leftButton;
+	bool unselect_button => Mouse.current.rightButton.wasPressedThisFrame || Keyboard.current.escapeKey.wasPressedThisFrame;
 	bool add2select_button => Keyboard.current.shiftKey.isPressed;
 
 	public static ISelectable raycast_hover () {
@@ -42,6 +43,9 @@ public class Selection {
 
 		hover = raycast_hover();
 
+		if (unselect_button) {
+			clear();
+		}
 		if (select_button.wasPressedThisFrame) {
 			if (add2select_button) {
 				if (hover != null) {

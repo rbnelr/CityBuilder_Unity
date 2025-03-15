@@ -94,7 +94,8 @@ public class Road : MonoBehaviour {
 
 		junc0.Refresh();
 		junc1.Refresh();
-
+		
+		g.entities.roads.add(road);
 		return road;
 	}
 

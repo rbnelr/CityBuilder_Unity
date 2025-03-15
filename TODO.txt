@@ -21,6 +21,8 @@
 -fix tangents!
  -likely need to write custom shader!
 -fix intersection center
+ -> concave polygon centers are hard to compute
+ -> use avg of each center of each pair of road curve?
 
 -constrain clac_curv better
 -implement angled road ends?

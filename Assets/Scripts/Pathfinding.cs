@@ -32,18 +32,10 @@ public class Pathfinding : MonoBehaviour {
 
 		var unvisited = new Utils.PriorityQueue<Junction, float>();
 		
-		//if (_junctions == null) {
-		//	Profiler.BeginSample("get");
-		//	_junctions = transform.GetComponentsInChildren<Junction>();
-		//	Profiler.EndSample();
-		//}
-		var _junctions = transform.GetComponentsInChildren<Junction>();
-
 		Profiler.BeginSample("prepare");
 
 		// prepare all nodes
-		//foreach (var node in g.entities.junctions) {
-		foreach (var node in _junctions) {
+		foreach (var node in g.entities.junctions) {
 			node._cost = float.PositiveInfinity;
 			node._visited = false;
 			//node._q_idx = -1;
@@ -185,7 +177,7 @@ public class Pathfinding : MonoBehaviour {
 		return path.ToArray();
 	}
 	public Road[] pathfind (Road start, Road dest) {
-		if (pathing_count >= 50)
+		if (pathing_count >= 200)
 			return null; // HACK: artifically fail pathfinding if too many pathfinds per frame, to avoid freezing the unity editor
 		
 		using (Timer.Start(d => pathing_total_time += d)) {
@@ -206,6 +198,10 @@ public class Pathfinding : MonoBehaviour {
 			$"Pathing Count: {pathing_count} "+
 			$"total: {pathing_total_time * 1000.0, 6:0.000}ms "+
 			$"avg: {pathing_total_time/pathing_count * 1000000.0, 6:0.000}us");
+		
+		//if (pathing_count > 0) {
+		//	Debug.Log($"pathing took avg: {pathing_total_time/pathing_count * 1000000.0, 6:0.000}us");
+		//}
 
 		pathing_count = 0;
 		pathing_total_time = 0;

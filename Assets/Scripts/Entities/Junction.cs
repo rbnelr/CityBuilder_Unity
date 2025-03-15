@@ -42,6 +42,8 @@ public class Junction : MonoBehaviour, ISelectable {
 	public static Junction create (string name=null) {
 		var junction = Instantiate(g.entities.junction_prefab, g.entities.junctions_go.transform);
 		junction.set_name(name);
+
+		g.entities.junctions.add(junction);
 		return junction;
 	}
 

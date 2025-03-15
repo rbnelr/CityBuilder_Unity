@@ -24,17 +24,16 @@ public class RoadGeometry {
 	}
 	public static Bezier calc_curve (PointDir p0, PointDir p1, float curve_k=0.6667f) {
 		
-		Debug.DrawLine(p0.pos, p0.pos+p0.dir, Color.magenta);
-		Debug.DrawLine(p1.pos, p1.pos+p1.dir, Color.magenta);
+		//Debug.DrawLine(p0.pos, p0.pos+p0.dir, Color.magenta);
+		//Debug.DrawLine(p1.pos, p1.pos+p1.dir, Color.magenta);
 
 		float cos_ang = abs(dot(p0.dir.xz, -p1.dir.xz));
-
 		bool is_straight = cos_ang >= cos(radians(1.0f));
 
 		float3 ctrl_in, ctrl_out;
 		// Find straight line intersection of in/out lanes with their tangents
 		if (!is_straight && MyMath.line_line_intersect(p0.pos.xz, p0.dir.xz, p1.pos.xz, -p1.dir.xz, out float2 point)) {
-			Debug.DrawLine(float3(point.x, 0, point.y), float3(point.x, 1, point.y), Color.yellow);
+			//Debug.DrawLine(float3(point.x, 0, point.y), float3(point.x, 1, point.y), Color.yellow);
 
 			ctrl_in  = float3(point.x, p0.pos.y, point.y);
 			ctrl_out = float3(point.x, p1.pos.y, point.y);
@@ -45,11 +44,6 @@ public class RoadGeometry {
 			ctrl_in  = p0.pos + float3(p0.dir.x, 0, p0.dir.z) * dist;
 			ctrl_out = p1.pos + float3(p1.dir.x, 0, p1.dir.z) * dist;
 		}
-
-		// NOTE: for quarter circle turns k=0.5539 would result in almost exactly a quarter circle!
-		// https://pomax.github.io/bezierinfo/#circles_cubic
-		// but turns that are sharper in the middle are more realistic, but we could make this customizable?
-		//float curve_k = 0.6667f;
 
 		Bezier bez = new Bezier(
 			p0.pos,

@@ -26,7 +26,8 @@ public class Vehicle : MonoBehaviour {
 			vehicle.color = rand.Weighted(asset.color_set.colors, x => x.weight).color;
 
 		vehicle.GetComponentInChildren<SkinnedMeshRenderer>().material.SetColor("_Tint", vehicle.color);
-
+		
+		g.entities.vehicles.add(vehicle);
 		return vehicle;
 	}
 
@@ -175,7 +176,7 @@ public class Vehicle : MonoBehaviour {
 		motion_enumer = null;
 	}
 
-	void Update () {
+	public void update () {
 		if (g.game_time.paused) return;
 
 		if (cur_building == null && target_building == null || (cur_building == null && motion_enumer == null)) {
