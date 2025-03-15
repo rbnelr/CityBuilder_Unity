@@ -4,6 +4,7 @@ using System.Linq;
 using UnityEngine;
 using Unity.Mathematics;
 using static Unity.Mathematics.math;
+using UnityEditor;
 
 public class RoadGeometry {
 	
@@ -13,31 +14,35 @@ public class RoadGeometry {
 
 		var p0 = road0.calc_path(dir0, 0).eval(1);
 		var p1 = road1.calc_path(dir1, 0).eval(0);
-		return calc_curve(p0.pos, p0.forw, p1.pos, p1.forw, junc.test_curv);
+		return calc_curve(p0, p1, junc.test_curv);
 	}
 	public static Bezier calc_curve (Junction junc, RoadLane lane0, RoadLane lane1) {
 		var p0 = lane0.road.calc_path(lane0).eval(1);
 		var p1 = lane1.road.calc_path(lane1).eval(0);
-		return calc_curve(p0.pos, p0.forw, p1.pos, p1.forw, junc.test_curv);
+		return calc_curve(p0, p1, junc.test_curv);
 	}
-	public static Bezier calc_curve (float3 pos0, float3 dir0, float3 pos1, float3 dir1, float curve_k=0.6667f) {
+	public static Bezier calc_curve (PointDir p0, PointDir p1, float curve_k=0.6667f) {
 		
-		Debug.DrawLine(pos0, pos0+dir0, Color.magenta);
-		Debug.DrawLine(pos1, pos1+dir1, Color.magenta);
+		Debug.DrawLine(p0.pos, p0.pos+p0.dir, Color.magenta);
+		Debug.DrawLine(p1.pos, p1.pos+p1.dir, Color.magenta);
+
+		float cos_ang = abs(dot(p0.dir.xz, -p1.dir.xz));
+
+		bool is_straight = cos_ang >= cos(radians(1.0f));
 
 		float3 ctrl_in, ctrl_out;
 		// Find straight line intersection of in/out lanes with their tangents
-		if (MyMath.line_line_intersect(pos0.xz, dir0.xz, pos1.xz, -dir1.xz, out float2 point)) {
+		if (!is_straight && MyMath.line_line_intersect(p0.pos.xz, p0.dir.xz, p1.pos.xz, -p1.dir.xz, out float2 point)) {
 			Debug.DrawLine(float3(point.x, 0, point.y), float3(point.x, 1, point.y), Color.yellow);
 
-			ctrl_in  = float3(point.x, pos0.y, point.y);
-			ctrl_out = float3(point.x, pos1.y, point.y);
+			ctrl_in  = float3(point.x, p0.pos.y, point.y);
+			ctrl_out = float3(point.x, p1.pos.y, point.y);
 		}
 		// Come up with seperate control points TODO: how reasonable is this?
 		else {
-			float dist = distance(pos0, pos1) * 0.5f;
-			ctrl_in  = pos0 + float3(dir0.x, 0, dir0.z) * dist;
-			ctrl_out = pos1 - float3(dir1.x, 0, dir1.z) * dist;
+			float dist = distance(p0.pos, p1.pos) * 0.5f;
+			ctrl_in  = p0.pos + float3(p0.dir.x, 0, p0.dir.z) * dist;
+			ctrl_out = p1.pos + float3(p1.dir.x, 0, p1.dir.z) * dist;
 		}
 
 		// NOTE: for quarter circle turns k=0.5539 would result in almost exactly a quarter circle!
@@ -46,10 +51,10 @@ public class RoadGeometry {
 		//float curve_k = 0.6667f;
 
 		Bezier bez = new Bezier(
-			pos0,
-			lerp(pos0, ctrl_in , curve_k),
-			lerp(pos1, ctrl_out, curve_k),
-			pos1
+			p0.pos,
+			lerp(p0.pos, ctrl_in , curve_k),
+			lerp(p1.pos, ctrl_out, curve_k),
+			p1.pos
 		);
 		return bez;
 	}
@@ -75,7 +80,7 @@ public class RoadGeometry {
 		}
 	}
 	*/
-	
+
 	public static void reset_endpoint (Road road, Junction junc) {
 		if (junc.roads.Length <= 1) {
 			road.pos_for_junction(junc) = junc.position;
@@ -90,7 +95,7 @@ public class RoadGeometry {
 			float eR = junc == road.junc0 ? road.asset.edgeR : -road.asset.edgeL;
 
 			var pos = road.pos_for_junction(junc) - junc.position;
-			var dir = normalizesafe(junc == road.junc0 ? road.tangent0 : road.tangent1);
+			var dir = normalizesafe(road.tangent_for_junction(junc));
 			var right = -MyMath.rotate90_right(dir); // right as seen facing into junc
 			var posL = pos + right * eL; // left edge of road going into intersection
 			var posR = pos + right * eR; // right edge
@@ -140,4 +145,145 @@ public class RoadGeometry {
 
 		road.pos_for_junction(junc) = float3(new_pos2d.x, junc.position.y, new_pos2d.y);
 	}
+	
+#region meshing
+
+	static void set_mat_bez (Material mat, string name, Bezier bez) {
+		//mat.SetVector($"{name}_A", (Vector3)bez.a);
+		//mat.SetVector($"{name}_B", (Vector3)bez.b);
+		//mat.SetVector($"{name}_C", (Vector3)bez.c);
+		//mat.SetVector($"{name}_D", (Vector3)bez.d);
+		// Encode Bezier as 4x4 matrix to avoid me going crazy with too many vector params in shader graph
+		Matrix4x4 m = new Matrix4x4();
+		m.SetRow(0, float4(bez.a, 0));
+		m.SetRow(1, float4(bez.b, 0));
+		m.SetRow(2, float4(bez.c, 0));
+		m.SetRow(3, float4(bez.d, 0));
+		mat.SetMatrix(name, m);
+	}
+
+	// refresh road mesh, which is fit to road beziers in vertex shader, by setting up materials
+	public static Material[] refresh_main_mesh (Road road) {
+		var mats = road.make_road_mats();
+		
+		var BACK = RoadDir.Backward;
+		var FORW = RoadDir.Forward;
+
+		var bezL0 = calc_curve(road.endpoint(BACK, road.asset.edgeL    ), road.endpoint(FORW, road.asset.edgeL    ));
+		var bezL1 = calc_curve(road.endpoint(BACK, road.asset.sidewalkL), road.endpoint(FORW, road.asset.sidewalkL));
+		var bezR0 = calc_curve(road.endpoint(BACK, road.asset.sidewalkR), road.endpoint(FORW, road.asset.sidewalkR));
+		var bezR1 = calc_curve(road.endpoint(BACK, road.asset.edgeR    ), road.endpoint(FORW, road.asset.edgeR    ));
+		
+		{
+			bezL0.debugdraw(Color.red);
+			bezL1.debugdraw(Color.green);
+			bezR0.debugdraw(Color.green);
+			bezR1.debugdraw(Color.red);
+		}
+
+		float length = road.bezier.approx_len();
+		
+		foreach (var (m, rm) in road.materials.Zip(mats, (x,y) => (x,y))) {
+			set_mat_bez(rm, "_BezierL0", bezL0);
+			set_mat_bez(rm, "_BezierL1", bezL1);
+			set_mat_bez(rm, "_BezierR0", bezR0);
+			set_mat_bez(rm, "_BezierR1", bezR1);
+			
+			bool worldspace = rm.GetInt("_WorldspaceTextures") != 0;
+			
+			float2 scale = m.texture_scale;
+			if (!worldspace)
+				scale.x /= length;
+			rm.SetVector("_TextureScale", (Vector2)scale);
+		}
+
+		return mats;
+	}
+	// refresh road junction mesh pieces, can call for lone junction without mesh (pass prefab for road)
+	public static Material[] refresh_junc_mesh (Junction junc, Road road, float junc_forw=0) {
+		var mats = road.make_junc_mats();
+
+		Bezier bezL0, bezL1, bezR0, bezR1;
+		float3 center;
+
+		void semicircle (float3 middle, float3 forw, float3 l0, float3 l1, float3 r0, float3 r1) {
+			bezL0 = Bezier.from_quarter_circle(l0, forw, middle);
+			bezL1 = Bezier.from_quarter_circle(l1, forw, middle);
+			bezR0 = Bezier.from_quarter_circle(r0, forw, middle);
+			bezR1 = Bezier.from_quarter_circle(r1, forw, middle);
+
+			center = middle + forw * 0.5f; // Move center point off of start point to avoid bezier.vel == 0 causing 0 matrix
+		}
+		
+		if (junc.roads.Length == 0) {
+			var middle = junc.position;
+			var forw   = float3(0,0,junc_forw);
+			var left   = junc.position + junc_forw * float3(road.asset.edgeL, 0,0);
+			var leftS  = junc.position + junc_forw * float3(road.asset.sidewalkL, 0,0);
+			var rightS = junc.position + junc_forw * float3(road.asset.sidewalkR, 0,0);
+			var right  = junc.position + junc_forw * float3(road.asset.edgeR, 0,0);
+			
+			semicircle(middle, forw, left, leftS, rightS, right);
+		}
+		else if (junc.roads.Length == 1) {
+			var middle = road.endpoint(junc, 0);
+			var left   = road.endpoint(junc, road.asset.edgeL).pos;
+			var leftS  = road.endpoint(junc, road.asset.sidewalkL).pos;
+			var rightS = road.endpoint(junc, road.asset.sidewalkR).pos;
+			var right  = road.endpoint(junc, road.asset.edgeR).pos;
+			
+			semicircle(middle.pos, middle.dir, left, leftS, rightS, right);
+		}
+		else {
+			(var L, var R) = junc.find_neighbours(road);
+			
+			(float l, float r) getEdges (Road r) => r.get_dir_to_junc(junc) == RoadDir.Forward ?
+				(r.asset.edgeL, r.asset.edgeR) : (-r.asset.edgeR, -r.asset.edgeL);
+			(float l, float r) getSidew (Road r) => r.get_dir_to_junc(junc) == RoadDir.Forward ?
+				(r.asset.sidewalkL, r.asset.sidewalkR) : (-r.asset.sidewalkR, -r.asset.sidewalkL);
+		
+			bezL0 = calc_curve(road.endpoint(junc, getEdges(road).l), L.endpoint(junc, getEdges(L).r), junc.test_curv);
+			bezL1 = calc_curve(road.endpoint(junc, getSidew(road).l), L.endpoint(junc, getSidew(L).r), junc.test_curv);
+			bezR0 = calc_curve(road.endpoint(junc, getSidew(road).r), R.endpoint(junc, getSidew(R).l), junc.test_curv);
+			bezR1 = calc_curve(road.endpoint(junc, getEdges(road).r), R.endpoint(junc, getEdges(R).l), junc.test_curv);
+
+			bezL0 = bezL0.subdiv(0.5f).first;
+			bezL1 = bezL1.subdiv(0.5f).first;
+			bezR0 = bezR0.subdiv(0.5f).first;
+			bezR1 = bezR1.subdiv(0.5f).first;
+
+			center = junc.position; // TODO: 
+		}
+
+		//if (junc.roads.Length > 0 && road == junc.roads[0]) {
+		//{
+		//	bezL0.debugdraw(Color.red);
+		//	bezL1.debugdraw(Color.green);
+		//	bezR0.debugdraw(Color.green);
+		//	bezR1.debugdraw(Color.red);
+		//}
+
+		float lengthL = bezL0.approx_len();
+		float lengthR = bezR0.approx_len();
+		float length = MyMath.avg(lengthL, lengthR);
+		
+		foreach (var (m, rm) in road.materials.Zip(mats, (x,y) => (x,y))) {
+			set_mat_bez(rm, "_BezierL0", bezL0);
+			set_mat_bez(rm, "_BezierL1", bezL1);
+			set_mat_bez(rm, "_BezierR0", bezR0);
+			set_mat_bez(rm, "_BezierR1", bezR1);
+				
+			rm.SetVector("_JunctionCenter", (Vector3)center);
+			
+			bool worldspace = rm.GetInt("_WorldspaceTextures") != 0;
+			
+			float2 scale = m.texture_scale;
+			if (!worldspace)
+				scale.x /= length;
+			rm.SetVector("_TextureScale", (Vector2)scale);
+		}
+
+		return mats;
+	}
+#endregion
 }

@@ -24,8 +24,11 @@ public class TestMapBuilder : MonoBehaviour {
 		recreate_map();
 	}
 
+	float last_timer = 0;
 	void Update () {
 		adjust_vehicle_count();
+
+		DebugHUD.Show($"TestMapBuilder took: {last_timer*1000}ms");
 	}
 	
 	Road road_type (int2 pos, int axis, out bool flip) {
@@ -57,17 +60,23 @@ public class TestMapBuilder : MonoBehaviour {
 	
 	
 	[Button("Destroy All")]
-	private void destroy_all () {
+	void destroy_all () {
 		g.entities.destroy_all();
 	}
 
 	[Button("Recreate Map")]
-	private void recreate_map () {
+	void recreate_map () {
+		using (Timer.Start(d => last_timer = d)) {
+			_recreate_map();
+		}
+	}
+	void _recreate_map () {
+		
 		g.entities.destroy_all();
 
 		var junctions = new Dictionary<int2, Junction>();
 
-		var base_pos = float3(0);
+		var base_pos = float3(50,0,50);
 		
 		// create path nodes grid
 		for (int y=0; y<grid+1; ++y)

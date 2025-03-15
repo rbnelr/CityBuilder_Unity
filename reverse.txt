@@ -1,0 +1,19 @@
+Reverse Engineering Cities 1:
+
+Roads are meshes curved in shader with probably 2 beziers (left right edge)
+->actually, since sidewalks can transition between different roads, maybe they do use more beziers?
+
+2 Meshes:
+	segment (road itself which can repeat)
+	and node (a 'cap' that terminates any median meshes before the potential crosswalk)
+	roads can probably be streched in X, but lanes, sidewaks etc. can not be adjusted without new mesh
+
+UVs are adjusted for length of road (potentially seperate per side) meshes seemingly never
+Road markings are part of road texture, crosswalks probably as well
+
+tram tracks are a seperate mesh (which does not sink below road)
+
+manholes and turn arrows are normal decals (projection boxes)
+
+terrain clipping is magically not broken like in CS2 and my version, no idea how it works!
+-> It's signed distance fields! What resolution? seems like it's enough to be accurate to less than a meter!

@@ -24,8 +24,16 @@ public class Junction : MonoBehaviour {
 	[NonSerialized] public Road _pred_road;
 
 	[Range(0,1)]
-	public float test_curv = 0.6667f;
+	public float test_curv = 0.5539f; // 0.6667f
 	
+	public bool _force_refresh = false;
+
+	private void Update () {
+		if (_force_refresh) {
+			Refresh(true);
+		}
+	}
+
 	static int _counter = 0;
 	public void set_name (string custom_name=null) {
 		name = custom_name ?? $"Junction #{_counter++}";
@@ -155,7 +163,7 @@ public class Junction : MonoBehaviour {
 	private void OnDrawGizmosSelected () {
 		foreach (var (i,o) in lane_connections_without_uturn()) {
 			var bez = RoadGeometry.calc_curve(this, i,o);
-			bez.debugdraw();
+			bez.debugdraw(Color.white);
 		}
 	}
 }

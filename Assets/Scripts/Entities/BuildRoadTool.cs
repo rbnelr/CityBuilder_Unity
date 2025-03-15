@@ -3,11 +3,12 @@ using UnityEngine.UIElements;
 using Unity.Mathematics;
 using static Unity.Mathematics.math;
 using UnityEngine.InputSystem;
+using System.Linq;
 
 public class BuildRoadTool : UI_ButtonTool {
 
 	[Header("BuildRoadTool")]
-	public Road prefab;
+	public Road road_prefab;
 
 	bool accept_button => Mouse.current.leftButton.wasPressedThisFrame;
 	bool back_button => Mouse.current.rightButton.wasPressedThisFrame;
@@ -20,11 +21,14 @@ public class BuildRoadTool : UI_ButtonTool {
 	int stage = 0;
 	Junction start_junc = null;
 	Junction end_junc = null;
+
+	GameObject junc0_mesh = null;
 	
 	protected override void deactivated () {
 		if (road) road.destroy();
 		if (junc0) junc0.destroy();
 		if (junc1) junc1.destroy();
+		if (junc0_mesh) Destroy(junc0_mesh);
 		
 		stage = 0;
 		start_junc = null;
@@ -95,6 +99,7 @@ public class BuildRoadTool : UI_ButtonTool {
 		
 		// delete and recreate road every frame to avoid complication of having to reconnect road dynamically
 		if (road) road.destroy(keep_empty_junc: true);
+		if (junc0_mesh) Destroy(junc0_mesh);
 
 		// preview start point
 		if (stage == 0) {
@@ -111,9 +116,11 @@ public class BuildRoadTool : UI_ButtonTool {
 			// exclude start_junc, can't connect to itself!
 			end_junc = pick_new_or_existing_junction(ref junc1, exclude: start_junc);
 			
-			if (start_junc && end_junc && start_junc != end_junc) {
+			float min_dist = max(road_prefab.asset.width * 0.5f, 1.0f);
+			if (  start_junc && end_junc && start_junc != end_junc &&
+				  distance(start_junc.position, end_junc.position) > min_dist) {
 				// create linear road with default rules
-				road = Road.create(prefab, start_junc, end_junc, "BuildRoadTool-road");
+				road = Road.create(road_prefab, start_junc, end_junc, "BuildRoadTool-road");
 				
 				// accept road
 				if (accept_button) {
@@ -126,6 +133,18 @@ public class BuildRoadTool : UI_ButtonTool {
 					stage = 1;
 				}
 			}
+		}
+
+		if (start_junc?.roads.Length == 0) {
+			// Draw lone junction mesh TODO: could probably draw a road with 0 length instead if we didn't have to manage gameobjects
+			var mesh = road_prefab.GetComponent<MeshFilter>().sharedMesh;
+			var mats0 = RoadGeometry.refresh_junc_mesh(start_junc, road_prefab, +1);
+			var mats1 = RoadGeometry.refresh_junc_mesh(start_junc, road_prefab, -1);
+
+			for (int i=0; i<mesh.subMeshCount; ++i)
+				Graphics.DrawMesh(mesh, Matrix4x4.identity, mats0[i], 0, null, i);
+			for (int i=0; i<mesh.subMeshCount; ++i)
+				Graphics.DrawMesh(mesh, Matrix4x4.identity, mats1[i], 0, null, i);
 		}
 
 		// newly created junctions only visible if not using existing and if raycast succeeds

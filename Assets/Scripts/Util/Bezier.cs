@@ -26,11 +26,28 @@ public struct Bezier {
 	public static Bezier from_quarter_circle (float3 start, float3 forw, float3 center) {
 		float3 center2start = start - center;
 		float radius = length(center2start);
+
 		float3 a = start;
-		float3 b = start + forw * radius * circle_k;
-		float3 c = center + center2start * circle_k;
 		float3 d = center + forw * radius;
+		float3 p = start + forw * radius;
+
+		float3 b = lerp(a, p, circle_k);
+		float3 c = lerp(d, p, circle_k);
 		return new Bezier(a,b,c,d);
+	}
+
+	public (Bezier first, Bezier last) subdiv (float t) {
+		float3 ab = lerp(a,b, t);
+		float3 bc = lerp(b,c, t);
+		float3 cd = lerp(c,d, t);
+		float3 abc = lerp(ab,bc, t);
+		float3 bcd = lerp(bc,cd, t);
+		float3 abcd = lerp(abc,bcd, t);
+
+		return (
+			first: new Bezier(a, ab, abc, abcd),
+			last:  new Bezier(abcd, bcd, cd, d)
+		);
 	}
 
 	public struct PosVel {
@@ -58,17 +75,13 @@ public struct Bezier {
 		return new PosVel { pos=value, vel=deriv };
 	}
 
-	public struct OffsetPoint {
-		public float3 pos;
-		public float3 forw;
-	}
-	public OffsetPoint eval_offset (float t, float3 offset) {
+	public PointDir eval_offset (float t, float3 offset) {
 		var res = eval(t);
 		var mat = MyMath.rotate_to_direction(res.vel);
 
-		return new OffsetPoint {
+		return new PointDir {
 			pos = res.pos + mul(mat, offset),
-			forw = mul(mat, float3(0,0,1))
+			dir = mul(mat, float3(0,0,1))
 		};
 	}
 
@@ -162,34 +175,39 @@ public struct Bezier {
 		tang_out = mul(rotate_to_bezier, tang_obj);
 	}
 	
-	public void debugdraw (int res=10) {
+	public void debugdraw (Color col, int res=10) {
 		float3 prev = a;
 
 		for (int i=0; i<res; i++) {
 			float t = (float)(i+1) * (1.0f / res);
 			float3 pos = eval(t).pos;
 
-			if (i < res-1) Gizmos.DrawLine(prev, pos);
-			else           Util.GizmosDrawArrow(prev, pos-prev, 1);
+			if (i < res-1) Debug.DrawLine(prev, pos, col);
+			else           Util.DebugDrawArrow(prev, pos-prev, col, 1);
 
 			prev = pos;
 		}
+
+		Debug.DrawRay(a, float3(0,1,0));
+		Debug.DrawRay(b, float3(0,1,0));
+		Debug.DrawRay(c, float3(0,1,0));
+		Debug.DrawRay(d, float3(0,1,0));
 	}
 
-	public void debugdraw (float3 offset, int res=10) {
+	public void debugdraw (float3 offset, Color col, int res=10) {
 		float3 prev = eval_offset(0, offset).pos;
 
 		for (int i=0; i<res; i++) {
 			float t = (float)(i+1) * (1.0f / res);
 			float3 pos = eval_offset(t, offset).pos;
 
-			if (i < res-1) Gizmos.DrawLine(prev, pos);
-			else           Util.GizmosDrawArrow(prev, pos-prev, 1);
+			if (i < res-1) Debug.DrawLine(prev, pos, col);
+			else           Util.DebugDrawArrow(prev, pos-prev, col, 1);
 
 			prev = pos;
 		}
 	}
-	public void debugdraw (float3 offset0, float3 offset1, int res=10) {
+	public void debugdraw (float3 offset0, float3 offset1, Color col, int res=10) {
 		float3 prev = eval_offset(0, offset0).pos;
 
 		for (int i=0; i<res; i++) {
@@ -197,8 +215,8 @@ public struct Bezier {
 			float3 offs = lerp(offset0, offset1, t);
 			float3 pos = eval_offset(t, offs).pos;
 
-			if (i < res-1) Gizmos.DrawLine(prev, pos);
-			else           Util.GizmosDrawArrow(prev, pos-prev, 1);
+			if (i < res-1) Debug.DrawLine(prev, pos, col);
+			else           Util.DebugDrawArrow(prev, pos-prev, col, 1);
 
 			prev = pos;
 		}
@@ -208,7 +226,7 @@ public struct OffsetBezier {
 	public Bezier bez;
 	public float3 offset;
 
-	public Bezier.OffsetPoint eval (float t) {
+	public PointDir eval (float t) {
 		return bez.eval_offset(t, offset);
 	}
 	
@@ -224,7 +242,7 @@ public struct OffsetBezier {
 		return bez.approx_len(offset, res);
 	}
 
-	public void debugdraw (int res=10) {
-		bez.debugdraw(offset, res);
+	public void debugdraw (Color col, int res=10) {
+		bez.debugdraw(offset, col, res);
 	}
 }

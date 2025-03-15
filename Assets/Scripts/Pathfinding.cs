@@ -188,17 +188,15 @@ public class Pathfinding : MonoBehaviour {
 		if (pathing_count >= 50)
 			return null; // HACK: artifically fail pathfinding if too many pathfinds per frame, to avoid freezing the unity editor
 		
-		pathing_count++;
+		using (Timer.Start(d => pathing_total_time += d)) {
+			Profiler.BeginSample("pathfind");
+			
+			pathing_count++;
+			var res = _pathfind(start, dest);
 
-		Profiler.BeginSample("pathfind");
-		var ts_begin = Time.realtimeSinceStartupAsDouble;
-
-		var res = _pathfind(start, dest);
-
-		pathing_total_time += Time.realtimeSinceStartupAsDouble - ts_begin;
-		Profiler.EndSample();
-
-		return res;
+			Profiler.EndSample();
+			return res;
+		}
 	}
 
 	public bool visualize_last_pathfind = false;

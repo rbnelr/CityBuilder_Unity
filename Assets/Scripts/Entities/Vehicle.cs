@@ -58,19 +58,19 @@ public class Vehicle : MonoBehaviour {
 	Motion motion;
 	int _path_idx;
 
-	RoadDirection get_road_dir (int path_idx) {
+	RoadDir get_road_dir (int path_idx) {
 		Road cur_road = path[path_idx];
 		if (path_idx == 0) {
 			var next_junc = Junction.between(cur_road, path[path_idx + 1]);
-			return next_junc != cur_road.junc0 ? RoadDirection.Forward : RoadDirection.Backward;
+			return next_junc != cur_road.junc0 ? RoadDir.Forward : RoadDir.Backward;
 		}
 		else {
 			var prev_junc = Junction.between(path[path_idx - 1], cur_road);
-			return prev_junc == cur_road.junc0 ? RoadDirection.Forward : RoadDirection.Backward;
+			return prev_junc == cur_road.junc0 ? RoadDir.Forward : RoadDir.Backward;
 		}
 	}
 	// TODO: split lanes by direction by default so this becomes unneeded
-	static RoadLane pick_lane (Road road, RoadDirection dir) => rand.Pick(road.lanes_in_dir(dir).ToArray());
+	static RoadLane pick_lane (Road road, RoadDir dir) => rand.Pick(road.lanes_in_dir(dir).ToArray());
 
 	static float3 parking_spot (Building b) => b.transform.TransformPoint(float3(0, 0, 8));
 
@@ -200,7 +200,7 @@ public class Vehicle : MonoBehaviour {
 			var bez = motion.bezier.eval(bez_t);
 
 			transform.position = bez.pos;
-			transform.rotation = Quaternion.LookRotation(bez.forw);
+			transform.rotation = Quaternion.LookRotation(bez.dir);
 
 			float step = asset.max_speed * g.game_time.dt;
 			motion.cur_dist += step;

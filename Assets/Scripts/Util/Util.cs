@@ -20,6 +20,14 @@ public static class Util {
 		Gizmos.DrawRay(pos + direction, right * arrowHeadLength);
 		Gizmos.DrawRay(pos + direction, left * arrowHeadLength);
 	}
+	public static void DebugDrawArrow (Vector3 pos, Vector3 direction, Color col, float arrowHeadLength = 0.25f, float arrowHeadAngle = 20.0f) {
+		Debug.DrawRay(pos, direction, col);
+		
+		Vector3 right = Quaternion.LookRotation(direction) * Quaternion.Euler(0,180+arrowHeadAngle,0) * new Vector3(0,0,1);
+		Vector3 left = Quaternion.LookRotation(direction) * Quaternion.Euler(0,180-arrowHeadAngle,0) * new Vector3(0,0,1);
+		Debug.DrawRay(pos + direction, right * arrowHeadLength, col);
+		Debug.DrawRay(pos + direction, left * arrowHeadLength, col);
+	}
 
 	public static GameObject? FindChildGameObjectByName (GameObject parent, string name) {
 		for (int i=0; i<parent.transform.childCount; i++) {
@@ -118,6 +126,10 @@ public static class MyMath {
 		return float3(v.z, v.y, -v.x);
 	}
 
+	public static float avg (float a, float b) {
+		return (a + b) * 0.5f;
+	}
+
 	// wrap x into range [0,range)
 	// negative x wrap back to +range unlike c++ % operator
 	// negative range supported
@@ -170,7 +182,15 @@ public static class MyMath {
 		return true; // always intersect for now
 	}
 }
+public struct PointDir {
+	public float3 pos;
+	public float3 dir;
 
+	public PointDir (float3 pos, float3 dir) {
+		this.pos = pos;
+		this.dir = dir;
+	}
+}
 
 public class WeightedChoice {
 	// TODO: could be optimized using a binary search

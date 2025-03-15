@@ -1,4 +1,20 @@
 ﻿
+float map (float x, float a, float b) {
+	return (x - a) / (b - a);
+}
+
+struct Bezier {
+	float3 a, b, c, d;
+};
+Bezier bez_from_line (float3 a, float3 b) {
+	Bezier bez;
+	bez.a = a;
+	bez.b = lerp(a,b,0.3333333f);
+	bez.c = lerp(a,b,0.3666667f);
+	bez.d = b;
+	return bez;
+}
+
 void calc_bezier (float3 a, float3 b, float3 c, float3 d, float t, out float3 pos, out float3 vel) {
 	float3 c0 = a;                   // a
 	float3 c1 = 3 * (b - a);         // (-3a +3b)t
@@ -10,6 +26,18 @@ void calc_bezier (float3 a, float3 b, float3 c, float3 d, float t, out float3 po
 	
 	pos = c3*t3     + c2*t2    + c1*t + c0; // f(t)
 	vel = c3*(t2*3) + c2*(t*2) + c1;        // f'(t)
+}
+void calc_bezier (Bezier bez, float t, out float3 pos, out float3 vel) {
+	calc_bezier(bez.a,bez.b,bez.c,bez.d, t, pos, vel);
+}
+
+Bezier unpack_bez (float4x4 mat) {
+	Bezier bez;
+	bez.a = mat[0].xyz;
+	bez.b = mat[1].xyz;
+	bez.c = mat[2].xyz;
+	bez.d = mat[3].xyz;
+	return bez;
 }
 
 // Rotate vector by 90 degrees in CW around Y
@@ -44,9 +72,10 @@ void scale_mesh (float4 transfX, inout float3 pos, inout float3 norm, inout floa
 	pos.x = pos.x * scale + offs;
 }
 
+/*
 // curve mesh along a bezier
 // transform obj space to world or curved obj space depending on if bezier points (a,b,c,d) are in world or in obj space
-void curve_mesh (float3 a, float3 b, float3 c, float3 d, inout float3 pos, inout float3 norm, inout float3 tang) {
+void curve_mesh (Bezier bez, inout float3 pos, inout float3 norm, inout float3 tang) {
 	// NOTE: distorting/extruding the mesh along a bezier like this results in technically not-correct normals
 	// while the normals are curved correctly, the mesh is streched/squashed along the length of the bezier
 	// so any normals pointing forwards or backwards relative to the bezier, will be wrong, just like a sphere scaled on one axis will have wrong normals
@@ -56,60 +85,104 @@ void curve_mesh (float3 a, float3 b, float3 c, float3 d, inout float3 pos, inout
 	
 	float3 bez_pos;
 	float3 bez_vel;
-	calc_bezier(a, b, c, d, t, bez_pos, bez_vel);
+	calc_bezier(bez, t, bez_pos, bez_vel);
 	
 	float3x3 rotate_to_bezier = rotate_to_direction(bez_vel);
 	
 	pos = bez_pos + mul(rotate_to_bezier, float3(pos.xy,0));
 	norm = mul(rotate_to_bezier, norm);
 	tang = mul(rotate_to_bezier, tang);
-}
+}*/
 
-void mesh_road_float (
-		float4 transfX,
-		float3 a, float3 b, float3 c, float3 d,
-		float3 pos, float3 norm, float3 tang,
-		out float3 pos_out, out float3 norm_out, out float3 tang_out) {
+void mesh_road_float (float4x4 L0, float4x4 L1, float4x4 R0, float4x4 R1,
+		float3 pos, float3 norm, float3 tang, out float3 pos_out, out float3 norm_out, out float3 tang_out) {
 	
-	scale_mesh(transfX, pos, norm, tang);
-	curve_mesh(a,b,c,d, pos, norm, tang);
+	scale_mesh(float4(1,1,0,0), pos, norm, tang);
 	
-	pos_out = pos;
-	norm_out = norm;
-	tang_out = tang;
-}
-
-void mesh_junction_float (
-		float4 transfX,
-		float3 La, float3 Lb, float3 Lc, float3 Ld,
-		float3 Ra, float3 Rb, float3 Rc, float3 Rd,
-		float3 junction_pos,
-		float3 pos, float3 norm, float3 tang,
-		out float3 pos_out, out float3 norm_out, out float3 tang_out) {
+	float3 middle = (unpack_bez(L1).a + unpack_bez(R0).a) * 0.5;
 	
-	scale_mesh(transfX, pos, norm, tang);
+	float bezT = pos.z;
+	float bezX;
 	
-	float t = pos.z * 0.5f; // [0,1] -> [0,0.5]
-	
-	float3 bez_pos;
-	float3 bez_vel;
-	if (abs(pos.x) < 0.01f) {
-		float3 line_pos = (La + Ra) * 0.5;
-		float3 line_dir = junction_pos - line_pos;
-		
-		bez_pos = line_pos + (line_dir * t*2.0);
-		bez_vel = line_dir;
+	Bezier bez0, bez1;
+	if (pos.x <= -3.0f) {
+		bez0 = unpack_bez(L0);
+		bez1 = unpack_bez(L1);
+		bezX = map(pos.x, -5.0f, -3.0f);
 	}
-	else if (pos.x < 0.0f) {
-		calc_bezier(La, Lb, Lc, Ld, t, bez_pos, bez_vel);
+	else if (pos.x <= 3.0f) {
+		bez0 = unpack_bez(L1);
+		bez1 = unpack_bez(R0);
+		bezX = map(pos.x, -3.0f, 3.0f);
 	}
 	else {
-		calc_bezier(Ra, Rb, Rc, Rd, t, bez_pos, bez_vel);
+		bez0 = unpack_bez(R0);
+		bez1 = unpack_bez(R1);
+		bezX = map(pos.x, 3.0f, 5.0f);
 	}
-
+	
+	float3 bez0_pos;
+	float3 bez0_vel;
+	float3 bez1_pos;
+	float3 bez1_vel;
+	calc_bezier(bez0, bezT, bez0_pos, bez0_vel);
+	calc_bezier(bez1, bezT, bez1_pos, bez1_vel);
+	
+	float3 bez_pos = lerp(bez0_pos, bez1_pos, bezX);
+	float3 bez_vel = lerp(normalize(bez0_vel), normalize(bez1_vel), bezX);
+	
 	float3x3 rotate_to_bezier = rotate_to_direction(bez_vel);
 	
-	pos_out = bez_pos + mul(rotate_to_bezier, float3(pos.xy,0));
+	pos_out = bez_pos + mul(rotate_to_bezier, float3(0,pos.y,0));
+	norm_out = mul(rotate_to_bezier, norm);
+	tang_out = mul(rotate_to_bezier, tang);
+}
+
+void mesh_junction_float (float4x4 L0, float4x4 L1, float4x4 R0, float4x4 R1, float3 junction_pos,
+		float3 pos, float3 norm, float3 tang, out float3 pos_out, out float3 norm_out, out float3 tang_out) {
+	
+	scale_mesh(float4(1,1,0,0), pos, norm, tang);
+	
+	float3 middle = (unpack_bez(L1).a + unpack_bez(R0).a) * 0.5;
+	
+	float bezT = pos.z;
+	float bezX;
+	
+	Bezier bez0, bez1;
+	if (pos.x <= -3.0f) {
+		bez0 = unpack_bez(L0);
+		bez1 = unpack_bez(L1);
+		bezX = map(pos.x, -5.0f, -3.0f);
+	}
+	else if (pos.x <= 0.0f) {
+		bez0 = unpack_bez(L1);
+		bez1 = bez_from_line(middle, junction_pos);
+		bezX = map(pos.x, -3.0f, 0.0f);
+	}
+	else if (pos.x <= 3.0f) {
+		bez0 = bez_from_line(middle, junction_pos);
+		bez1 = unpack_bez(R0);
+		bezX = map(pos.x, 0.0f, 3.0f);
+	}
+	else {
+		bez0 = unpack_bez(R0);
+		bez1 = unpack_bez(R1);
+		bezX = map(pos.x, 3.0f, 5.0f);
+	}
+	
+	float3 bez0_pos;
+	float3 bez0_vel;
+	float3 bez1_pos;
+	float3 bez1_vel;
+	calc_bezier(bez0, bezT, bez0_pos, bez0_vel);
+	calc_bezier(bez1, bezT, bez1_pos, bez1_vel);
+	
+	float3 bez_pos = lerp(bez0_pos, bez1_pos, bezX);
+	float3 bez_vel = lerp(normalize(bez0_vel), normalize(bez1_vel), bezX);
+	
+	float3x3 rotate_to_bezier = rotate_to_direction(bez_vel);
+	
+	pos_out = bez_pos + mul(rotate_to_bezier, float3(0,pos.y,0));
 	norm_out = mul(rotate_to_bezier, norm);
 	tang_out = mul(rotate_to_bezier, tang);
 }
