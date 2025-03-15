@@ -61,6 +61,8 @@ public class Road : MonoBehaviour {
 	};
 
 	public SubmeshMaterial[] materials;
+
+	public Color tint = new Color(0,0,0,0); // TODO: just used for previews, optimize away for common roads?
 	
 	Material get_junc_mat (Material orig) {
 		var m = new Material(orig);
@@ -76,11 +78,12 @@ public class Road : MonoBehaviour {
 		name = custom_name ?? $"Road #{_counter++}";
 	}
 	
-	public static Road create (Road prefab, Junction junc0, Junction junc1, string name=null) {
+	public static Road create (Road prefab, Junction junc0, Junction junc1, string name=null, Color? tint=null) {
 		Debug.Assert(junc0 != junc1);
 
 		var road = Instantiate(prefab, g.entities.roads_go.transform);
 		road.set_name(name);
+		if (tint.HasValue) road.tint = tint.Value;
 
 		road.junc0 = junc0;
 		junc0.connect_road(road, refresh: false);
@@ -123,16 +126,15 @@ public class Road : MonoBehaviour {
 
 	public void Init (bool refresh=true) {
 		Debug.Assert(junc0 && junc1);
+		
+		float3 p0 = junc0.position;
+		float3 p1 = junc1.position;
 
-		bezier = Bezier.from_line(junc0.position, junc1.position);
+		float3 dir = normalizesafe(p1 - p0);
+		p0 += dir * junc0._radius;
+		p1 -= dir * junc1._radius;
 
-		float3 dir = normalizesafe(pos1 - pos0);
-
-		pos0 += dir * junc0._radius;
-		pos1 -= dir * junc1._radius;
-
-		//Debug.DrawRay(pos0 + float3(0,1,0), tangent0, Color.red, 0);
-		//Debug.DrawRay(pos1 + float3(0,1,0), tangent1, Color.blue, 0);
+		bezier = Bezier.from_line(p0, p1);
 
 		if (refresh)
 			Refresh();
@@ -216,7 +218,6 @@ public class Road : MonoBehaviour {
 			offset.x = -offset.x;
 		offset.z = -offset.z;
 
-		Debug.Assert(length(dir) >= 0.1f);
 		var mat = MyMath.rotate_to_direction(dir);
 		return new PointDir {
 			pos = pos + mul(mat, offset),
@@ -229,7 +230,7 @@ public class Road : MonoBehaviour {
 		var side = get_dir_to_junc(junc);
 		var pos = get_pos(side);
 		var dir = -get_tangent(side);
-		Debug.Assert(length(dir) >= 0.1f);
+
 		var mat = MyMath.rotate_to_direction(dir);
 		return new PointDir {
 			pos = pos + mul(mat, offset),
@@ -238,6 +239,13 @@ public class Road : MonoBehaviour {
 	}
 	public PointDir endpoint (RoadDir side, float offsetX) => endpoint(side, float3(offsetX, 0,0));
 	public PointDir endpoint (Junction for_junc, float offsetX) => endpoint(for_junc, float3(offsetX, 0,0));
+
+	public PointDir endpoint (Junction for_junc, RoadLane lane) {
+		var side = get_dir_to_junc(for_junc);
+		var ep = endpoint(side, float3(lane.asset.shift, lane.asset.height, 0));
+		ep.dir = -ep.dir;
+		return ep;
+	}
 
 	// get bezier for lane
 	// TODO: it's actually impossible to create accurate beziers relative to other beziers!
@@ -253,6 +261,14 @@ public class Road : MonoBehaviour {
 		return calc_path(lane.dir, float3(lane.asset.shift, lane.asset.height, 0));
 	}
 	#endregion
+	
+	public void highlight_junc_mesh (Junction junc, bool is_highlighted, Color tint) {
+		var renderers = GetComponentsInChildren<MeshRenderer>();
+		var renderer = junc == junc0 ? renderers[1] : renderers[2];
+		foreach (var mat in renderer.sharedMaterials) {
+			mat.SetVector("_AlbedoTint", tint);
+		}
+	}
 
 	#region visualization
 	private void OnDrawGizmosSelected () {

@@ -6,7 +6,7 @@ using Unity.Mathematics;
 using static Unity.Mathematics.math;
 using Random = Unity.Mathematics.Random;
 
-public class Junction : MonoBehaviour {
+public class Junction : MonoBehaviour, ISelectable {
 	public float3 position {
 		get { return transform.position; }
 		set { transform.position = value; }
@@ -57,7 +57,7 @@ public class Junction : MonoBehaviour {
 		destroy();
 	}
 
-	void Start () {
+	void OnEnable () {
 		Refresh();
 	}
 
@@ -118,16 +118,17 @@ public class Junction : MonoBehaviour {
 		}
 	}
 	
-	public IEnumerable<(Road, Road)> road_connections_without_uturn () {
+	public IEnumerable<(Road, Road)> allowed_road_connections () {
 		foreach (var i in roads) {
 			foreach (var o in roads) {
-				if (i != o)
-					yield return (i,o);
+				bool uturn = i == o;
+				bool uturn_allowed = roads.Length <= 1;
+				if (!uturn || uturn_allowed) yield return (i,o);
 			}
 		}
 	}
-	public IEnumerable<(RoadLane, RoadLane)> lane_connections_without_uturn () {
-		foreach (var (i,o) in road_connections_without_uturn()) {
+	public IEnumerable<(RoadLane, RoadLane)> allowed_lane_connections () {
+		foreach (var (i,o) in allowed_road_connections()) {
 			foreach (var il in i.lanes_to_junc(this)) {
 				foreach (var ol in o.lanes_from_junc(this)) {
 					yield return (il, ol);
@@ -161,9 +162,18 @@ public class Junction : MonoBehaviour {
 	}
 
 	private void OnDrawGizmosSelected () {
-		foreach (var (i,o) in lane_connections_without_uturn()) {
+		foreach (var (i,o) in allowed_lane_connections()) {
 			var bez = RoadGeometry.calc_curve(this, i,o);
 			bez.debugdraw(Color.white);
+		}
+	}
+
+	public void bulldoze () {
+		destroy();
+	}
+	public void highlight (bool is_highlighted, Color tint) {
+		foreach (var r in roads) {
+			r.highlight_junc_mesh(this, is_highlighted, tint);
 		}
 	}
 }

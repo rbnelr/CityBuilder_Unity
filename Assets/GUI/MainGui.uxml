@@ -1,0 +1,8 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" editor-extension-mode="False">
+    <Style src="project://database/Assets/GUI/MainGui_Style.uss?fileID=7433441132597879392&amp;guid=089ad32fdaa1d4143bd44c112755b91a&amp;type=3#MainGui_Style" />
+    <ui:VisualElement style="flex-grow: 1; flex-direction: row; flex-wrap: nowrap; justify-content: space-around; align-items: flex-end;">
+        <ui:VisualElement name="settings_left" style="min-width: 20%;" />
+        <ui:VisualElement name="toolshelf_container" class="ToolshelfContainer" style="flex-shrink: 0; flex-grow: 1; position: relative;" />
+        <ui:VisualElement name="settings_right" style="min-width: 20%;" />
+    </ui:VisualElement>
+</ui:UXML>

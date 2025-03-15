@@ -1,0 +1,10 @@
+<engine:UXML xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:engine="UnityEngine.UIElements" xmlns:editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
+    <Style src="project://database/Assets/GUI/MainGui_Style.uss?fileID=7433441132597879392&amp;guid=089ad32fdaa1d4143bd44c112755b91a&amp;type=3#MainGui_Style" />
+    <engine:VisualElement class="Toolshelf" style="flex-direction: column; align-items: flex-start;">
+        <engine:Label text="Build Road Settings" style="color: rgb(255, 255, 255); -unity-font-style: bold; -unity-text-align: upper-left; font-size: 16px; padding-bottom: 0; padding-top: 0; margin-top: 2px;" />
+        <engine:VisualElement style="flex-grow: 1; flex-direction: row;">
+            <engine:Label text=" | " name="Straight" class="ToolButton" />
+            <engine:Label text=" ( " name="Curved" class="ToolButton" />
+        </engine:VisualElement>
+    </engine:VisualElement>
+</engine:UXML>

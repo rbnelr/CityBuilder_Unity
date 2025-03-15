@@ -76,6 +76,16 @@ public static class Util {
 }
 
 public static class Extensions {
+
+	public static Color Blend (this Color col, Color overlay) {
+		float one_minus = 1.0f - overlay.a;
+		return new Color(
+			col.r * one_minus + overlay.r,
+			col.g * one_minus + overlay.g,
+			col.b * one_minus + overlay.b,
+			col.a * one_minus + overlay.a
+		);
+	}
 	
 //// Collections
 	public static void HardClear<T> (this List<T> list) {

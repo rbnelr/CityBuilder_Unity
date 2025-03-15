@@ -1,13 +1,12 @@
 -Add animation for gameobject vehicles
 
 -render roads
- -adjust to road width
- -render junctions
  -draw lane markings?
  -draw props?
  
 -highlighting for junctions + roads in a basic or nice way
 -raycasting for junctions + roads
+ -> fix render bounds for junctions!
  
 -add basic road building!
  -handling selection (in 'view' mode? or add a select tool?

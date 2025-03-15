@@ -18,6 +18,9 @@ public class Controls : MonoBehaviour {
 
 	public CursorDragging cursor_dragging;
 
+	public BulldozeTool bulldoze;
+	public Selection selection;
+
 	public static Ray? cursor_ray () {
 		if (!Mouse.current.enabled)
 			return null;
@@ -45,6 +48,7 @@ public class Controls : MonoBehaviour {
 		if (Keyboard.current.altKey.isPressed && Keyboard.current.enterKey.wasPressedThisFrame) {
 			Screen.fullScreen = !Screen.fullScreen;
 		}
+
 		if (debug_camera.gameObject.activeInHierarchy != view_debug_camera) { // if changed through button or through inspector
 
 			// toggle camera active state
@@ -64,7 +68,14 @@ public class Controls : MonoBehaviour {
 
 	private void Update () {
 		camera_controls();
+
 		cursor_dragging.Update();
+
+		selection.update_cursor_select();
+
+		if (Keyboard.current.deleteKey.wasPressedThisFrame) {
+			bulldoze.toggle();
+		}
 	}
 }
 

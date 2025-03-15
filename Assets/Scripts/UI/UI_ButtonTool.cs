@@ -32,7 +32,7 @@ public class UI_ButtonTool : MonoBehaviour {
 		active = !active;
 	}
 
-	public virtual VisualElement create_ui (VisualElement[] toolshelf_levels=null, int level=-1) {
+	public virtual VisualElement create_ui (UI_Controller uic=null, int level=-1) {
 		ui_button = new Label(name);
 		ui_button.AddToClassList("ToolButton");
 		foreach (var c in custom_ui_class_list)

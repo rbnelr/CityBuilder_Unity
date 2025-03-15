@@ -7,11 +7,11 @@ using UnityEngine.InputSystem;
 using UnityEngine.UIElements;
 
 public class UI_Controller : MonoBehaviour {
-	UIDocument doc;
+	public UIDocument doc { get; private set; }
 
 	public UI_Toolshelf root_toolshelf;
 	
-	VisualElement[] toolshelf_levels;
+	public VisualElement[] toolshelf_levels { get; private set; }
 	
 	// UIDocument gets recreated on script reloads, so need to reinit everything
 	// TODO: UI is visible but stops reacting when reloading, fix?
@@ -31,7 +31,7 @@ public class UI_Controller : MonoBehaviour {
 			toolshelf_levels[i] = level;
 		}
 
-		var dummy_button = root_toolshelf.create_ui(toolshelf_levels, 0);
+		var dummy_button = root_toolshelf.create_ui(this, 0);
 
 		root_toolshelf.active = true;
 	}

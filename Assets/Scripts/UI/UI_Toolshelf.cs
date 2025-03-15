@@ -10,21 +10,21 @@ public class UI_Toolshelf : UI_ButtonTool {
 
 	[NonSerialized] public List<UI_ButtonTool> subtools;
 
-	public override VisualElement create_ui (VisualElement[] toolshelf_levels, int level) {
+	public override VisualElement create_ui (UI_Controller uic, int level) {
 		base.create_ui();
 
-		if (level < toolshelf_levels.Length) {
+		if (level < uic.toolshelf_levels.Length) {
 
 			ui_shelf = new VisualElement();
 			ui_shelf.AddToClassList("Toolshelf");
 			if (!active) ui_shelf.style.display = DisplayStyle.None;
-			toolshelf_levels[level].Add(ui_shelf);
+			uic.toolshelf_levels[level].Add(ui_shelf);
 
 			subtools = new List<UI_ButtonTool>();
 			foreach (Transform child in transform) {
 				var tool = child.GetComponent<UI_ButtonTool>();
 				if (tool) {
-					ui_shelf.Add( tool.create_ui(toolshelf_levels, level+1) );
+					ui_shelf.Add( tool.create_ui(uic, level+1) );
 
 					subtools.Add(tool);
 					tool.parent = this;

@@ -1,4 +1,0 @@
-<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" editor-extension-mode="False">
-    <Style src="project://database/Assets/GUI/main_gui_style.uss?fileID=7433441132597879392&amp;guid=089ad32fdaa1d4143bd44c112755b91a&amp;type=3#main_gui_style" />
-    <ui:VisualElement name="toolshelf_container" class="ToolshelfContainer" />
-</ui:UXML>

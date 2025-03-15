@@ -8,18 +8,19 @@ using UnityEditor;
 
 public class RoadGeometry {
 	
-	public static Bezier calc_curve (Junction junc, Road road0, Road road1) {
-		var dir0 = road0.get_dir_to_junc(junc);
-		var dir1 = road1.get_dir_from_junc(junc);
-
-		var p0 = road0.calc_path(dir0, 0).eval(1);
-		var p1 = road1.calc_path(dir1, 0).eval(0);
-		return calc_curve(p0, p1, junc.test_curv);
-	}
+	//public static Bezier calc_curve (Junction junc, Road road0, Road road1) {
+	//	return calc_curve(road0.endpoint(junc, 0), road1.endpoint(junc, 0), junc.test_curv);
+	//}
 	public static Bezier calc_curve (Junction junc, RoadLane lane0, RoadLane lane1) {
-		var p0 = lane0.road.calc_path(lane0).eval(1);
-		var p1 = lane1.road.calc_path(lane1).eval(0);
-		return calc_curve(p0, p1, junc.test_curv);
+		var p0 = lane0.road.endpoint(junc, lane0);
+		var p1 = lane1.road.endpoint(junc, lane1);
+		if (lane0.road == lane1.road) {
+			// uturn
+			return Bezier.from_half_circle(p0.pos, p0.dir, (p0.pos+p1.pos)*0.5f);
+		}
+		else {
+			return calc_curve(p0, p1, junc.test_curv);
+		}
 	}
 	public static Bezier calc_curve (PointDir p0, PointDir p1, float curve_k=0.6667f) {
 		
@@ -189,18 +190,21 @@ public class RoadGeometry {
 			set_mat_bez(rm, "_BezierR0", bezR0);
 			set_mat_bez(rm, "_BezierR1", bezR1);
 			
+			// TODO: fix UV tiling
+
 			bool worldspace = rm.GetInt("_WorldspaceTextures") != 0;
-			
+
 			float2 scale = m.texture_scale;
 			if (!worldspace)
 				scale.x /= length;
 			rm.SetVector("_TextureScale", (Vector2)scale);
+			rm.SetVector("_AlbedoTint", road.tint);
 		}
 
 		return mats;
 	}
 	// refresh road junction mesh pieces, can call for lone junction without mesh (pass prefab for road)
-	public static Material[] refresh_junc_mesh (Junction junc, Road road, float junc_forw=0) {
+	public static Material[] refresh_junc_mesh (Junction junc, Road road, float junc_forw=0, Color? override_tint=null) {
 		var mats = road.make_junc_mats();
 
 		Bezier bezL0, bezL1, bezR0, bezR1;
@@ -216,6 +220,8 @@ public class RoadGeometry {
 		}
 		
 		if (junc.roads.Length == 0) {
+			// TODO: test and fix for asym edge/sidewalk, use similar as roads.Length == 1
+
 			var middle = junc.position;
 			var forw   = float3(0,0,junc_forw);
 			var left   = junc.position + junc_forw * float3(road.asset.edgeL, 0,0);
@@ -226,6 +232,8 @@ public class RoadGeometry {
 			semicircle(middle, forw, left, leftS, rightS, right);
 		}
 		else if (junc.roads.Length == 1) {
+			// TODO: test and fix for asym edge/sidewalk x ie. left sidewalk 5m, right 2 will not transition properly
+
 			var middle = road.endpoint(junc, 0);
 			var left   = road.endpoint(junc, road.asset.edgeL).pos;
 			var leftS  = road.endpoint(junc, road.asset.sidewalkL).pos;
@@ -281,6 +289,7 @@ public class RoadGeometry {
 			if (!worldspace)
 				scale.x /= length;
 			rm.SetVector("_TextureScale", (Vector2)scale);
+			rm.SetVector("_AlbedoTint", override_tint ?? road.tint);
 		}
 
 		return mats;
