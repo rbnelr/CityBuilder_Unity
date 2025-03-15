@@ -143,22 +143,20 @@ MonoBehaviour:
   asset:
     width: 12
     lanes: []
-  width: 12
-  lanes: []
   materials:
   - mat: {fileID: 2100000, guid: 6b4785c6fe65fa74fa0c6916c19d3ee2, type: 2}
     texture_scale:
-      x: 1
-      y: 1
+      x: 3
+      y: 3
   - mat: {fileID: 2100000, guid: b36af1235888d8347a6891aceb2eb066, type: 2}
     texture_scale:
-      x: 1
+      x: 1.75
       y: 1
   - mat: {fileID: 2100000, guid: 0486b8a07950f5543acf4587be6cdfaa, type: 2}
     texture_scale:
       x: 2
       y: 1
-  render_materials: []
+  tint: {r: 0, g: 0, b: 0, a: 0}
 --- !u!1 &6557371961065550338
 GameObject:
   m_ObjectHideFlags: 0

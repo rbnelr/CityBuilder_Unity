@@ -154,6 +154,7 @@ public class RoadGeometry {
 		//mat.SetVector($"{name}_B", (Vector3)bez.b);
 		//mat.SetVector($"{name}_C", (Vector3)bez.c);
 		//mat.SetVector($"{name}_D", (Vector3)bez.d);
+
 		// Encode Bezier as 4x4 matrix to avoid me going crazy with too many vector params in shader graph
 		Matrix4x4 m = new Matrix4x4();
 		m.SetRow(0, float4(bez.a, 0));
@@ -161,6 +162,25 @@ public class RoadGeometry {
 		m.SetRow(2, float4(bez.c, 0));
 		m.SetRow(3, float4(bez.d, 0));
 		mat.SetMatrix(name, m);
+	}
+	
+	static void uv_tiling (Road.SubmeshMaterial m, Material rm, float lenL, float lenR) {
+		bool worldspace = rm.GetInt("_WorldspaceTextures") != 0;
+
+		float4 scale = float4(m.texture_scale, m.texture_scale);
+		if (worldspace) {
+			scale = 1.0f / scale;
+		} else {
+			float repeatsL = lenL / scale.x;
+			float repeatsR = lenR / scale.x;
+			repeatsL = clamp((int)round(repeatsL), 1, 1000);
+			repeatsR = clamp((int)round(repeatsR), 1, 1000);
+
+			scale.x = repeatsL;
+			scale.z = repeatsR;
+		}
+		rm.SetVector("_TextureScale", (Vector4)scale);
+		rm.SetVector("_TextureOffset", (Vector4)float4(0));
 	}
 
 	// refresh road mesh, which is fit to road beziers in vertex shader, by setting up materials
@@ -182,24 +202,22 @@ public class RoadGeometry {
 			bezR1.debugdraw(Color.red);
 		}
 
-		float length = road.bezier.approx_len();
-		
 		foreach (var (m, rm) in road.materials.Zip(mats, (x,y) => (x,y))) {
 			set_mat_bez(rm, "_BezierL0", bezL0);
 			set_mat_bez(rm, "_BezierL1", bezL1);
 			set_mat_bez(rm, "_BezierR0", bezR0);
 			set_mat_bez(rm, "_BezierR1", bezR1);
 			
-			// TODO: fix UV tiling
-
-			bool worldspace = rm.GetInt("_WorldspaceTextures") != 0;
-
-			float2 scale = m.texture_scale;
-			if (!worldspace)
-				scale.x /= length;
-			rm.SetVector("_TextureScale", (Vector2)scale);
 			rm.SetVector("_AlbedoTint", road.tint);
 		}
+		
+		float road_len = road.bezier.approx_len();
+		float sidewL_len = MyMath.avg(bezL0.approx_len(), bezL1.approx_len());
+		float sidewR_len = MyMath.avg(bezR0.approx_len(), bezR1.approx_len());
+		
+		uv_tiling(road.materials[0], mats[0], road_len, road_len);
+		uv_tiling(road.materials[1], mats[1], sidewL_len, sidewR_len);
+		uv_tiling(road.materials[2], mats[2], sidewL_len, sidewR_len);
 
 		return mats;
 	}
@@ -280,17 +298,19 @@ public class RoadGeometry {
 			set_mat_bez(rm, "_BezierL1", bezL1);
 			set_mat_bez(rm, "_BezierR0", bezR0);
 			set_mat_bez(rm, "_BezierR1", bezR1);
-				
+			
 			rm.SetVector("_JunctionCenter", (Vector3)center);
 			
-			bool worldspace = rm.GetInt("_WorldspaceTextures") != 0;
-			
-			float2 scale = m.texture_scale;
-			if (!worldspace)
-				scale.x /= length;
-			rm.SetVector("_TextureScale", (Vector2)scale);
 			rm.SetVector("_AlbedoTint", override_tint ?? road.tint);
 		}
+
+		float road_len = 10; // TODO: fix
+		float sidewL_len = MyMath.avg(bezL0.approx_len(), bezL1.approx_len());
+		float sidewR_len = MyMath.avg(bezR0.approx_len(), bezR1.approx_len());
+		
+		uv_tiling(road.materials[0], mats[0], road_len, road_len);
+		uv_tiling(road.materials[1], mats[1], sidewL_len, sidewR_len);
+		uv_tiling(road.materials[2], mats[2], sidewL_len, sidewR_len);
 
 		return mats;
 	}

@@ -19,5 +19,10 @@
  -port vehicles (and roads?) to ECS
  
 -fix tangents!
+ -likely need to write custom shader!
+-fix intersection center
+
+-constrain clac_curv better
+-implement angled road ends?
 
 -implement proper input consumption so inputs don't accidentally act twice
