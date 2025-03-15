@@ -22,6 +22,8 @@ public class Pathfinding : MonoBehaviour {
 	//int _dijk_iter_dupl = 0;
 	//int _dijk_iter_lanes = 0;
 
+	TimedAverage path_avg = new();
+
 	//Junction[] _junctions;
 
 	public Road[] _pathfind (Road start, Road dest) {
@@ -194,14 +196,15 @@ public class Pathfinding : MonoBehaviour {
 	public bool visualize_last_pathfind = false;
 
 	private void Update () {
+		if (pathing_count > 0) {
+			path_avg.push((float)pathing_total_time/pathing_count);
+		}
+		path_avg.update();
+
 		DebugHUD.Show(
-			$"Pathing Count: {pathing_count} "+
+			$"Pathing Count: {path_avg.cur_result.mean * 1000000.0:0.000}us -- {pathing_count} "+
 			$"total: {pathing_total_time * 1000.0, 6:0.000}ms "+
 			$"avg: {pathing_total_time/pathing_count * 1000000.0, 6:0.000}us");
-		
-		//if (pathing_count > 0) {
-		//	Debug.Log($"pathing took avg: {pathing_total_time/pathing_count * 1000000.0, 6:0.000}us");
-		//}
 
 		pathing_count = 0;
 		pathing_total_time = 0;

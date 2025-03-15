@@ -51,7 +51,7 @@ public class Entities : MonoBehaviour {
 		Util.DestroyChildren(vehicles_go.transform);
 	}
 
-	float _veh_time = 0;
+	TimedAverage vehicles_time = new();
 
 	private void Update () {
 		roads.update();
@@ -59,16 +59,14 @@ public class Entities : MonoBehaviour {
 		buildings.update();
 		vehicles.update();
 
-		using (Timer.Start(d => _veh_time = d)) {
+		using (vehicles_time.StartTimer()) {
 			foreach (var vehicle in vehicles) {
 				vehicle.update();
 			}
 		}
 		
-		DebugHUD.Show(
-			$"Vehicle update: #{vehicles.Count} "+
-			$"total: {_veh_time * 1000.0, 6:0.000}ms "+
-			$"avg: {_veh_time/vehicles.Count * 1000000.0, 6:0.000}us");
+		vehicles_time.update();
+		DebugHUD.Show($"Vehicle update: #{vehicles.Count} total: {vehicles_time.cur_result.mean * 1000.0, 6:0.000}ms");
 	}
 }
 
