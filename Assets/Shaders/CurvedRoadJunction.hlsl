@@ -13,6 +13,7 @@ bool _WorldspaceTextures;
 half4 _TextureScale;
 half4 _TextureOffset;
 
+float3 _JunctionCenter;
 float4x4 _BezierL0; // use float3[] or even float3[][]?
 float4x4 _BezierL1;
 float4x4 _BezierR0;
@@ -23,7 +24,7 @@ CBUFFER_END
 
 void vertex (Attributes v, inout Varyings o) {
 	float3 tang;
-	mesh_road_float(_BezierL0, _BezierL1, _BezierR0, _BezierR1,
+	mesh_junction_float(_BezierL0, _BezierL1, _BezierR0, _BezierR1, _JunctionCenter,
 		v.position, v.normal, v.tangent.xyz,
 		o.positionWS, o.normalWS, tang);
 	

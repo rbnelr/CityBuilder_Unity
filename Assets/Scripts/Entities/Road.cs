@@ -64,12 +64,22 @@ public class Road : MonoBehaviour {
 
 	public Color tint = new Color(0,0,0,0); // TODO: just used for previews, optimize away for common roads?
 	
-	Material get_junc_mat (Material orig) {
+	Material get_road_mat (Material orig) {
 		var m = new Material(orig);
-		m.shader = Shader.Find("Shader Graphs/Junction");
+		//m.SetTexture("_Albedo", orig.GetTexture("_Albedo"));
+		//m.SetTexture("_Normal", orig.GetTexture("_Normal"));
+		//m.SetInt("_WorldspaceTextures", orig.GetInt("_WorldspaceTextures"));
+		//m.SetFloat("_Smoothness", orig.GetFloat("_Smoothness"));
+		//m.SetFloat("_Metallic", orig.GetFloat("_Metallic"));
 		return m;
 	}
-	public Material[] make_road_mats () => materials.Select(x => new Material(x.mat)).ToArray();
+	Material get_junc_mat (Material orig) {
+		var m = get_road_mat(orig);
+		//m.shader = Shader.Find("Shader Graphs/Junction");
+		m.shader = Shader.Find("Custom/CurvedRoadJunction");
+		return m;
+	}
+	public Material[] make_road_mats () => materials.Select(x => get_road_mat(x.mat)).ToArray();
 	public Material[] make_junc_mats () => materials.Select(x => get_junc_mat(x.mat)).ToArray();
 
 	#region creation

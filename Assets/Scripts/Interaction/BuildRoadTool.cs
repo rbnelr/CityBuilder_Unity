@@ -230,6 +230,8 @@ public class BuildRoadTool : UI_ButtonTool {
 			var mats0 = RoadGeometry.refresh_junc_mesh(start_junc, road_prefab, +1, build.preview_tint);
 			var mats1 = RoadGeometry.refresh_junc_mesh(start_junc, road_prefab, -1, build.preview_tint);
 
+			// TODO: is this culling using mesh.bounds at origin? How do I stop this?
+
 			for (int i=0; i<mesh.subMeshCount; ++i)
 				Graphics.DrawMesh(mesh, Matrix4x4.identity, mats0[i], 0, null, i);
 			for (int i=0; i<mesh.subMeshCount; ++i)

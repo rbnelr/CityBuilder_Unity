@@ -1,5 +1,5 @@
 // Derived from com.unity.render-pipelines.universal@15fef0f41df6\Shaders\Lit.shader
-Shader "Custom/CurvedRoad" {
+Shader "Custom/CurvedRoadJunction" {
 	Properties {
 		// Specular vs Metallic workflow
 		//_WorkflowMode("WorkflowMode", Float) = 1.0
@@ -96,7 +96,7 @@ Shader "Custom/CurvedRoad" {
 			#pragma instancing_options renderinglayer
 			#include_with_pragmas "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DOTS.hlsl"
 			
-			#define ACTUAL_SHADER_FILE "CurvedRoad.hlsl"
+			#define ACTUAL_SHADER_FILE "CurvedRoadJunction.hlsl"
 			#include "CustomURPShader/LitCommon.hlsl"
 			#include "CustomURPShader/LitForwardPass.hlsl"
 			ENDHLSL
@@ -142,7 +142,7 @@ Shader "Custom/CurvedRoad" {
 
 			// -------------------------------------
 			// Includes
-			#define ACTUAL_SHADER_FILE "CurvedRoad.hlsl"
+			#define ACTUAL_SHADER_FILE "CurvedRoadJunction.hlsl"
 			#include "CustomURPShader/LitCommon.hlsl"
 			#include "CustomURPShader/ShadowCasterPass.hlsl"
 			ENDHLSL
@@ -219,7 +219,7 @@ Shader "Custom/CurvedRoad" {
 
 			// -------------------------------------
 			// Includes
-			#define ACTUAL_SHADER_FILE "CurvedRoad.hlsl"
+			#define ACTUAL_SHADER_FILE "CurvedRoadJunction.hlsl"
 			#include "CustomURPShader/LitCommon.hlsl"
 			#include "CustomURPShader/LitGBufferPass.hlsl"
 			ENDHLSL
@@ -258,7 +258,7 @@ Shader "Custom/CurvedRoad" {
 
 			// -------------------------------------
 			// Includes
-			#define ACTUAL_SHADER_FILE "CurvedRoad.hlsl"
+			#define ACTUAL_SHADER_FILE "CurvedRoadJunction.hlsl"
 			#include "CustomURPShader/LitCommon.hlsl"
 			#include "CustomURPShader/DepthOnlyPass.hlsl"
 			ENDHLSL
@@ -306,7 +306,7 @@ Shader "Custom/CurvedRoad" {
 
 			// -------------------------------------
 			// Includes
-			#define ACTUAL_SHADER_FILE "CurvedRoad.hlsl"
+			#define ACTUAL_SHADER_FILE "CurvedRoadJunction.hlsl"
 			#include "CustomURPShader/LitCommon.hlsl"
 			#include "CustomURPShader/LitDepthNormalsPass.hlsl"
 			ENDHLSL
