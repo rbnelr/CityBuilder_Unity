@@ -104,6 +104,19 @@ void road_uv_map_float (float3 pos_obj, float3 pos_world, float2 uv, bool worlds
 	out_uv = uv;
 }
 
+void road_uv_map (float2 uv, float3 pos_obj, float3 pos_world, float4 tang_world, out float2 out_uv, out float4 out_tang) {
+	uv = _WorldspaceTextures ? pos_world.xz : uv;
+	
+	bool left = pos_obj.x > 0.0f;
+	uv *= left ? _TextureScale.xy : _TextureScale.zw;
+	uv += left ? _TextureOffset.xy : _TextureOffset.zw;
+	
+	out_uv = uv;
+	out_tang = _WorldspaceTextures ?
+		float4(1,0,0, tang_world.w) :
+		float4(tang_world.xyz, tang_world.w * GetOddNegativeScale());
+}
+
 void mesh_road_float (float4x4 L0, float4x4 L1, float4x4 R0, float4x4 R1,
 		float3 pos, float3 norm, float3 tang, out float3 pos_out, out float3 norm_out, out float3 tang_out) {
 	

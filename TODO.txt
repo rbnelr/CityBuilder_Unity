@@ -13,6 +13,7 @@
   -if selection: button is press button and pressing deletes current selection
  -move junctions
  -move roads (allow individual control point movement + a more basic and constrained curve modify tool)
+ -fix curved road building!
 
 -make vehicles brake for vehicles on segments
 -maybe try to port intersection code (if performance still acceptable)
@@ -20,9 +21,6 @@
  
 -fix tangents!
  -likely need to write custom shader!
--fix intersection center
- -> concave polygon centers are hard to compute
- -> use avg of each center of each pair of road curve?
 
 -constrain clac_curv better
 -implement angled road ends?

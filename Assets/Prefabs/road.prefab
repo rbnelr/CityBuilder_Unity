@@ -144,15 +144,15 @@ MonoBehaviour:
     width: 12
     lanes: []
   materials:
-  - mat: {fileID: 2100000, guid: 6b4785c6fe65fa74fa0c6916c19d3ee2, type: 2}
+  - mat: {fileID: 2100000, guid: 4c20458e635a1bd41be31f61f1816bd2, type: 2}
     texture_scale:
       x: 3
       y: 3
-  - mat: {fileID: 2100000, guid: b36af1235888d8347a6891aceb2eb066, type: 2}
+  - mat: {fileID: 2100000, guid: aad58fe2d5e442b4699e952eede713ad, type: 2}
     texture_scale:
       x: 1.75
       y: 1
-  - mat: {fileID: 2100000, guid: 0486b8a07950f5543acf4587be6cdfaa, type: 2}
+  - mat: {fileID: 2100000, guid: 2862a8d617f26464fbe09f84e34b9c45, type: 2}
     texture_scale:
       x: 2
       y: 1
